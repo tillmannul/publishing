@@ -1,0 +1,57 @@
+/* Grundlayout: lesbare Spaltenbreite, zentriert */
+body {
+    max-width: 70ch;
+    margin: 2rem auto;
+    padding: 0 1.2rem;
+    font-family: -apple-system, system-ui, sans-serif;
+    font-size: 1.1rem;
+    line-height: 1.6;
+    color: #2f2c26;       
+    background: #f3eee1;     
+}
+
+/* Überschriften: etwas Luft darüber */
+h1, h2, h3 {
+    line-height: 1.2;
+    margin-top: 2rem;
+}
+
+/* Links */
+a {
+    color: #1a5fb4;
+}
+
+/* Abstand zwischen Absätzen */
+p {
+    margin: 0 0 0.5rem;
+}
+
+/* Abstand zwischen Listenpunkten */
+li {
+    margin-bottom: 0.5rem;
+}
+
+/* Inline-Code und Code-Blöcke */
+code {
+    background: #f0f0f0;
+    padding: 0.1rem 0.3rem;
+    border-radius: 3px;
+    font-size: 0.9em;
+}
+
+/* Tabellen mit sichtbaren Linien */
+table {
+    border-collapse: collapse;
+}
+th, td {
+    border: 1px solid #ccc;
+    padding: 0.4rem 0.8rem;
+}
+
+/* Zitate */
+blockquote {
+    border-left: 3px solid #ccc;
+    margin-left: 0;
+    padding-left: 1rem;
+    color: #555;
+}
