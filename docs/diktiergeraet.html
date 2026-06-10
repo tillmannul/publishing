@@ -11,12 +11,312 @@
 <div class="layout">
   <aside class="sidebar"><nav><ul><li><a href="shortcuts.html">Shortcuts</a></li><li><a href="budgy.html">Budgy</a></li><li><a href="diktiergeraet.html" class="active">Projekt Diktiergerät</a></li><li><a href="captablemanagement.html">Projekt CTM</a></li></ul></nav></aside>
   <main class="content"><h1>Projekt: Diktiergeraet</h1>
+<p>🦜🦜  Diktiergeraet</p>
 <p>Erstelle eigenes Diktiergeraet, mit dem ich Sprachnachrichten dokumentieren und zusammenfassen kann.</p>
 <p><em>Use Case:</em> Ich diktiere Gesprächsnotizen oder sonstige Gedanken in mein Handy. Es wird eine Zusammenfassung und ein Transkript erstellt.</p>
 <ul>
 <li>Zusammenfassung und Transkript werden inklusive Timestamp per Email an mich geschickt</li>
 <li>Zusammenfassung und Transkript werden einem Google Document hinzugefügt. Dabei wird stets das gleiche Google Doc genutzt, so dass ein Log entsteht. Neue Einträge kommen nach oben, so dass alle Einträge gegenchronologisch sind. Als Header für jeden Eintrag wird der Timestamp der Diktion genutzt sowie ein beschreibendes Schlagwort (Gesprächspartner, Kern der Notiz, etc)</li>
 </ul>
+<h1>Sprachmemo-Pipeline: Infrastruktur, Kosten, Roadmap</h1>
+<p>Ein selbst gehosteter Workflow: Sprachmemo per Mail einsprechen, automatisch
+transkribieren, von Claude zusammenfassen lassen, Ergebnis als E-Mail erhalten
+und in einem fortlaufenden Google Doc protokollieren. Alles auf eigener
+Infrastruktur, damit die Inhalte und das verknüpfte Google-Konto unter eigener
+Kontrolle bleiben.</p>
+<p>Grundsatzentscheidungen: eigener VPS statt Cloud-Automatisierung, Transkription
+auf dem eigenen Server statt bei einem Drittdienst, langsame Verarbeitung
+ausdrücklich akzeptiert (Ziel ist Dokumentation und spätere Verfügbarkeit, nicht
+Geschwindigkeit).</p>
+<h2>Benötigte Infrastruktur</h2>
+<table>
+<thead>
+<tr>
+  <th>Komponente</th>
+  <th>Einrichtung</th>
+  <th>Laufend</th>
+  <th>Zweck</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Dediziertes Google-Konto</td>
+  <td>selbst anlegen</td>
+  <td>–</td>
+  <td>Gmail-Trigger und Versand, Google Doc als Log. Trennt die Automatisierung vom privaten Konto</td>
+</tr>
+<tr>
+  <td>VPS (Hetzner Cloud, Linux)</td>
+  <td>mieten, absichern</td>
+  <td>läuft 24/7</td>
+  <td>trägt alle Dienste, immer erreichbar</td>
+</tr>
+<tr>
+  <td>Docker und docker-compose</td>
+  <td>installieren</td>
+  <td>–</td>
+  <td>Dienste isoliert und reproduzierbar betreiben</td>
+</tr>
+<tr>
+  <td>n8n (im Docker)</td>
+  <td>aufsetzen</td>
+  <td>läuft dauerhaft</td>
+  <td>Orchestrierung der Pipeline</td>
+</tr>
+<tr>
+  <td>Whisper ASR-Container</td>
+  <td>aufsetzen</td>
+  <td>läuft, arbeitet bei Bedarf</td>
+  <td>Transkription Audio zu Text, per HTTP aus n8n aufgerufen</td>
+</tr>
+<tr>
+  <td>Caddy (Reverse Proxy + TLS)</td>
+  <td>konfigurieren</td>
+  <td>läuft dauerhaft</td>
+  <td>HTTPS, zwingend für Google-OAuth</td>
+</tr>
+<tr>
+  <td>Subdomain <code>n8n.tillmannlang.com</code></td>
+  <td>DNS-A-Eintrag bei GoDaddy</td>
+  <td>–</td>
+  <td>Adresse für TLS und OAuth-Rückruf. Bestehende Domain, kein Kauf</td>
+</tr>
+<tr>
+  <td>Google-Cloud-Projekt</td>
+  <td>OAuth-Zugangsdaten erzeugen</td>
+  <td>–</td>
+  <td>kontrollierter Zugriff auf Gmail und Docs mit minimalen Scopes</td>
+</tr>
+<tr>
+  <td>Anthropic-API-Konto + Guthaben</td>
+  <td>anlegen, aufladen</td>
+  <td>pro Nutzung</td>
+  <td>Zusammenfassung via Claude-API</td>
+</tr>
+</tbody>
+</table>
+<p>Zusammenspiel: Memo per Mail eintreffen lassen, n8n erkennt sie, Whisper
+transkribiert, Claude fasst zusammen, n8n verschickt die Mail und hängt den
+Eintrag ans Google Doc an.</p>
+<h2>Kostentreiber</h2>
+<table>
+<thead>
+<tr>
+  <th>Treiber</th>
+  <th>Größenordnung</th>
+  <th>Anmerkung</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>VPS (Hauptkosten)</td>
+  <td>rund 5 bis 8 EUR/Monat [unverified]</td>
+  <td>Modell mit etwas RAM-Reserve für Whisper, bleibt unter dem 10-EUR-Deckel</td>
+</tr>
+<tr>
+  <td>Domain</td>
+  <td>0 EUR zusätzlich</td>
+  <td><code>tillmannlang.com</code> bereits vorhanden, nur ein Subdomain-Eintrag</td>
+</tr>
+<tr>
+  <td>Anthropic-API (Zusammenfassung)</td>
+  <td>Bruchteile Cent bis Cent pro Memo</td>
+  <td>vernachlässigbar</td>
+</tr>
+<tr>
+  <td>Whisper (Transkription)</td>
+  <td>0 EUR pro Nutzung</td>
+  <td>verbraucht nur VPS-Rechenzeit</td>
+</tr>
+<tr>
+  <td>Claude-Pro-Abo</td>
+  <td>hier nicht nutzbar</td>
+  <td>API wird getrennt abgerechnet, nicht über das Abo</td>
+</tr>
+<tr>
+  <td>Eigene Zeit</td>
+  <td>der eigentliche Aufwand</td>
+  <td>siehe Roadmap</td>
+</tr>
+</tbody>
+</table>
+<p>Die EUR-Beträge sind grobe Orientierung und vor der Bestellung beim Anbieter zu
+prüfen. Einzig nennenswerte laufende Geldkosten: der VPS. Alles andere bewegt
+sich im Cent-Bereich oder ist null.</p>
+<p>Hinweis zur Transkriptionsleistung: Whisper auf CPU ist rechenintensiv. Mit
+kleinem Modell dauert eine kurze Memo eher Minuten als Sekunden. Das ist hier
+bewusst akzeptiert. Reicht es später nicht, ist der Wechsel auf eine
+Cloud-Transkription der Fallback, dann allerdings mit einem Drittanbieter, der
+das Audio sieht.</p>
+<h2>Roadmap mit Breakpoints</h2>
+<p>Aufgeteilt in fünf Sessions. Jede endet an einem stabilen, testbaren Zustand, an
+dem problemlos pausiert werden kann. Gesamtaufwand realistisch 1,5 bis 2 Tage,
+über mehrere Termine verteilt.</p>
+<h3>Session 1 — Konten und Fundament</h3>
+<table>
+<thead>
+<tr>
+  <th>Punkt</th>
+  <th>Inhalt</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Aufgaben</td>
+  <td>Google-Konto anlegen, Anthropic-API-Konto + kleines Guthaben, VPS bei Hetzner mieten, DNS-A-Eintrag bei GoDaddy auf die Server-IP</td>
+</tr>
+<tr>
+  <td>Lernfokus</td>
+  <td>Bestellvorgänge, DNS-Grundlagen</td>
+</tr>
+<tr>
+  <td>Breakpoint</td>
+  <td>Server per SSH erreichbar, <code>n8n.tillmannlang.com</code> löst auf die Server-IP auf</td>
+</tr>
+<tr>
+  <td>Zeit</td>
+  <td>rund 1 bis 2 Stunden</td>
+</tr>
+</tbody>
+</table>
+<h3>Session 2a — Server absichern und Docker</h3>
+<table>
+<thead>
+<tr>
+  <th>Punkt</th>
+  <th>Inhalt</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Aufgaben</td>
+  <td>SSH-Zugang, Grundabsicherung (Firewall, kein Root-Login, Updates), Docker und docker-compose installieren</td>
+</tr>
+<tr>
+  <td>Lernfokus</td>
+  <td>Linux-Server, Grundabsicherung, Docker</td>
+</tr>
+<tr>
+  <td>Breakpoint</td>
+  <td>Server abgesichert, Docker läuft, Testcontainer startet</td>
+</tr>
+<tr>
+  <td>Zeit</td>
+  <td>rund 2 bis 3 Stunden</td>
+</tr>
+</tbody>
+</table>
+<h3>Session 2b — n8n über HTTPS</h3>
+<table>
+<thead>
+<tr>
+  <th>Punkt</th>
+  <th>Inhalt</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Aufgaben</td>
+  <td>Caddy als Reverse Proxy mit automatischem TLS, n8n im Docker dahinter</td>
+</tr>
+<tr>
+  <td>Lernfokus</td>
+  <td>Reverse Proxy, TLS-Zertifikate, docker-compose</td>
+</tr>
+<tr>
+  <td>Breakpoint</td>
+  <td>n8n-Login erreichbar unter <code>https://n8n.tillmannlang.com</code> mit gültigem Zertifikat</td>
+</tr>
+<tr>
+  <td>Zeit</td>
+  <td>rund 2 bis 3 Stunden</td>
+</tr>
+</tbody>
+</table>
+<h3>Session 3 — Trigger und Transkription</h3>
+<table>
+<thead>
+<tr>
+  <th>Punkt</th>
+  <th>Inhalt</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Aufgaben</td>
+  <td>n8n-Grundlagen, IMAP-Trigger auf das Memo-Postfach, Whisper-Container aufsetzen, Audio per HTTP-Knoten transkribieren</td>
+</tr>
+<tr>
+  <td>Lernfokus</td>
+  <td>n8n-Workflows, Container, Verdrahtung, Debugging</td>
+</tr>
+<tr>
+  <td>Breakpoint</td>
+  <td>Memo per Mail senden, Transkript erscheint als Text in n8n</td>
+</tr>
+<tr>
+  <td>Zeit</td>
+  <td>rund 3 bis 4 Stunden</td>
+</tr>
+</tbody>
+</table>
+<h3>Session 4 — Zusammenfassung und Ausgabe</h3>
+<table>
+<thead>
+<tr>
+  <th>Punkt</th>
+  <th>Inhalt</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Aufgaben</td>
+  <td>Claude-API-Knoten für die Zusammenfassung, Google-Cloud-OAuth einrichten, Versand per Gmail, Anhängen ans Google Doc</td>
+</tr>
+<tr>
+  <td>Lernfokus</td>
+  <td>API-Aufrufe, OAuth, Scopes</td>
+</tr>
+<tr>
+  <td>Breakpoint</td>
+  <td>End-to-End: Memo rein, Mail mit Zusammenfassung + Transkript raus, Eintrag im Google Doc</td>
+</tr>
+<tr>
+  <td>Zeit</td>
+  <td>rund 3 bis 4 Stunden</td>
+</tr>
+</tbody>
+</table>
+<h3>Session 5 — Feinschliff</h3>
+<table>
+<thead>
+<tr>
+  <th>Punkt</th>
+  <th>Inhalt</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Aufgaben</td>
+  <td>Zeitstempel als Überschrift, stets dasselbe Google Doc, Robustheit gegen Doppelverarbeitung, Gesamttest</td>
+</tr>
+<tr>
+  <td>Lernfokus</td>
+  <td>Ablauflogik, Idempotenz</td>
+</tr>
+<tr>
+  <td>Breakpoint</td>
+  <td>Pipeline läuft zuverlässig im Alltag</td>
+</tr>
+<tr>
+  <td>Zeit</td>
+  <td>rund 1 bis 2 Stunden</td>
+</tr>
+</tbody>
+</table>
+<p>Die fummeligsten Teile mit dem höchsten Lernwert und der größten
+Frustrationsgefahr sind Session 2b (TLS, Proxy) und Session 4 (OAuth, Scopes).
+Dort lohnt sich Geduld und schrittweises Testen am meisten.</p>
 <footer><hr><a href="index.html">Back to main</a></footer></main>
 </div>
 </body>
