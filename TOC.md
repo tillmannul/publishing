@@ -3,3 +3,4 @@
 - [Hilfreiche Shortcuts](shortcuts.md)
 - [Hilfreiche Shortcuts](shortcuts.md)
 - [Hilfreiche Shortcuts](shortcuts.md)
+- [Hilfreiche Shortcuts](shortcuts.md)

@@ -54,13 +54,19 @@ def fix_internal_links(html, articles):
         html = html.replace(f'href="{filename}"', f'href="{html_name}"')
     return html
 
-# Ausgabeordner anlegen, falls noch nicht vorhanden
+# Ausgabeordner frisch anlegen
 docs = Path("docs")
-docs.mkdir(exist_ok=True)
+if docs.exists():
+    shutil.rmtree(docs)
+docs.mkdir()
 shutil.copy("style.css", docs / "style.css")
 
 # Schleife um Artikel zu bauen
+already_built = set()
 for title, filename in ARTICLES:
+    if filename in already_built:
+        continue
+    already_built.add(filename)
     with open(Path("articles", filename)) as f:
         md = f.read()
     content_html = renderer(md)
