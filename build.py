@@ -76,7 +76,7 @@ for title, filename in ARTICLES:
         md = f.read()
     content_html = renderer(md)
     content_html = fix_internal_links(content_html, ARTICLES)
-    content_html += '<footer><hr><a href="main.html">Back to main</a></footer>'
+    content_html += '<footer><hr><a href="index.html">Back to main</a></footer>'
     sidebar_html = build_sidebar(ARTICLES, filename)
     page = TEMPLATE.replace("{{TITLE}}", title) \
                    .replace("{{SIDEBAR}}", sidebar_html) \
@@ -86,7 +86,7 @@ for title, filename in ARTICLES:
         f.write(page)
     print(f" docs/{out_name}")
 
-# main.html bauen (deduplizierte TOC-Liste als Inhalt)
+# index.html bauen (deduplizierte TOC-Liste als Inhalt)
 seen = set()
 toc_items = []
 for title, filename in ARTICLES:
@@ -101,8 +101,8 @@ sidebar_html = build_sidebar(ARTICLES, None)
 main_page = TEMPLATE.replace("{{TITLE}}", "Contents") \
                     .replace("{{SIDEBAR}}", sidebar_html) \
                     .replace("{{CONTENT}}", toc_content)
-with open(docs / "main.html", "w") as f:
+with open(docs / "index.html", "w") as f:
     f.write(main_page)
-print(f" docs/main.html")
+print(f" docs/index.html")
 
 print(f"Fertig: {len(ARTICLES)} Seiten in docs/")
