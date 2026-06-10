@@ -67,7 +67,11 @@ for title, filename in ARTICLES:
     if filename in already_built:
         continue
     already_built.add(filename)
-    with open(Path("articles", filename)) as f:
+    article_path = Path("articles", filename)
+    if not article_path.exists():
+        print(f"WARNUNG: '{filename}' in TOC.md gelistet, aber nicht in articles/ gefunden — übersprungen.")
+        continue
+    with open(article_path) as f:
         md = f.read()
     content_html = renderer(md)
     content_html = fix_internal_links(content_html, ARTICLES)
