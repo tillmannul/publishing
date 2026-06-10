@@ -1,5 +1,3 @@
-- [Building in Public, Quietly](helloworld.md)
-- [Notizen zum Generator](generator.md)
-- [Hilfreiche Shortcuts](shortcuts.md)
+- [Shortcuts](shortcuts.md)
 - [Budgy](budgy.md)
 

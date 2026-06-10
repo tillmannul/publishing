@@ -50,7 +50,7 @@
 
 # Git
 * git log --oneline
-
+* git diff datei: Änderungen anzeigen
 * stage: git add [path]
 * commit: git commit -m [comment]
 * push to github: git push

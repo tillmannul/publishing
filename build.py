@@ -84,4 +84,23 @@ for title, filename in ARTICLES:
         f.write(page)
     print(f" docs/{out_name}")
 
+# main.html bauen (deduplizierte TOC-Liste als Inhalt)
+seen = set()
+toc_items = []
+for title, filename in ARTICLES:
+    if filename in seen:
+        continue
+    seen.add(filename)
+    html_name = filename.replace(".md", ".html")
+    toc_items.append(f'<li><a href="{html_name}">{title}</a></li>')
+
+toc_content = f'<h1>Contents</h1><ul>{"".join(toc_items)}</ul>'
+sidebar_html = build_sidebar(ARTICLES, None)
+main_page = TEMPLATE.replace("{{TITLE}}", "Contents") \
+                    .replace("{{SIDEBAR}}", sidebar_html) \
+                    .replace("{{CONTENT}}", toc_content)
+with open(docs / "main.html", "w") as f:
+    f.write(main_page)
+print(f" docs/main.html")
+
 print(f"Fertig: {len(ARTICLES)} Seiten in docs/")
