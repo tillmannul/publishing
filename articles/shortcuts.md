@@ -10,12 +10,14 @@
 
 ## Navigation (Command Mode)
 * **`h`** / **`j`** / **`k`** / **`l`** : Nach links / unten / oben / rechts bewegen.
+* **`5j`** : 5 nach unten.
 * **`w`** : Ein Wort nach vorne springen (*word*).
 * **`b`** : Ein Wort zurückspringen (*back*).
 * **`0` (Null)** : An den absoluten Anfang der aktuellen Zeile springen.
 * **`$`** : Ans Ende der aktuellen Zeile springen.
 * **`gg`** : Zum Anfang des gesamten Dokuments springen.
 * **`G`** : Zum Ende des gesamten Dokuments springen.
+* **`L`** / **`M`** / **`H`** : Auf aktuellem Screen Low (ganz runter), Middle, High
 
 ## Editieren & Moduswechsel
 * **`x`** : Den einzelnen Buchstaben direkt unter dem Cursor löschen.
@@ -61,6 +63,50 @@
 ---
 
 
+# MD
+
+| Syntax | Result |
+|---|---|
+| `*italic*` or `_italic_` | *italic* |
+| `**bold**` | **bold** |
+| `***bold italic***` | ***bold italic*** |
+| `~~strikethrough~~` | ~~strikethrough~~ |
 
 
-Zurück zur [Startseite](helloworld.md).
+## Links and Images
+
+| Syntax | Purpose |
+|---|---|
+| `[text](https://url.com)` | Link |
+| `[text](url "tooltip")` | Link with hover title |
+| `![alt text](image.png)` | Image |
+| `<https://url.com>` | Auto-link |
+
+## Code
+
+**Inline:** `` `code` `` → `code`
+
+**Block** (specify language for highlighting):
+````
+```python
+print("hello")
+```
+````
+
+## Blockquote
+
+```
+> Quoted text
+>> Nested quote
+```
+
+## Tables
+
+```
+| Left | Center | Right |
+|:-----|:------:|------:|
+| a    | b      | c     |
+```
+Colons in the separator row set alignment.
+
+

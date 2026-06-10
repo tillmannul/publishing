@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+   <meta charset="utf-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1">
+   <title>Shortcuts</title>
+   <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar"><nav><ul><li><a href="shortcuts.html" class="active">Shortcuts</a></li><li><a href="budgy.html">Budgy</a></li><li><a href="lorem.html">Lorem</a></li></ul></nav></aside>
+  <main class="content"><h1>VI</h1>
+<h2>Mode-Wechsel</h2>
+<ul>
+<li><strong><code>i / a;  esc</code></strong>: insert / append.</li>
+<li><strong><code>:w</code></strong> : Datei speichern (<em>write</em>).</li>
+<li><strong><code>:wq</code></strong> : Speichern und <code>vi</code> beenden.</li>
+<li><strong><code>:q!</code></strong> : Beenden erzwingen, ohne zu speichern.</li>
+</ul>
+<h2>Navigation (Command Mode)</h2>
+<ul>
+<li><strong><code>h</code></strong> / <strong><code>j</code></strong> / <strong><code>k</code></strong> / <strong><code>l</code></strong> : Nach links / unten / oben / rechts bewegen.</li>
+<li><strong><code>5j</code></strong> : 5 nach unten.</li>
+<li><strong><code>w</code></strong> : Ein Wort nach vorne springen (<em>word</em>).</li>
+<li><strong><code>b</code></strong> : Ein Wort zurückspringen (<em>back</em>).</li>
+<li><strong><code>0</code> (Null)</strong> : An den absoluten Anfang der aktuellen Zeile springen.</li>
+<li><strong><code>$</code></strong> : Ans Ende der aktuellen Zeile springen.</li>
+<li><strong><code>gg</code></strong> : Zum Anfang des gesamten Dokuments springen.</li>
+<li><strong><code>G</code></strong> : Zum Ende des gesamten Dokuments springen.</li>
+<li><strong><code>L</code></strong> / <strong><code>M</code></strong> / <strong><code>H</code></strong> : Auf aktuellem Screen Low (ganz runter), Middle, High</li>
+</ul>
+<h2>Editieren &amp; Moduswechsel</h2>
+<ul>
+<li><strong><code>x</code></strong> : Den einzelnen Buchstaben direkt unter dem Cursor löschen.</li>
+<li><strong><code>dw</code></strong> : Das aktuelle Wort ab der Cursorposition löschen (<em>delete word</em>).</li>
+<li><strong><code>dd</code></strong> : Die komplette aktuelle Zeile löschen (und in die Zwischenablage kopieren).</li>
+<li><strong><code>yy</code></strong> : Die aktuelle Zeile kopieren (<em>yank</em>).</li>
+<li><strong><code>p</code></strong> : Kopierten Text oder gelöschte Zeilen nach dem Cursor einfügen (<em>paste</em>).</li>
+<li><strong><code>u</code></strong> : Die letzte Aktion rückgängig machen (<em>undo</em>).</li>
+<li><strong><code>Strg</code> + <code>r</code></strong> : Die rückgängig gemachte Aktion wiederholen (<em>redo</em>).</li>
+</ul>
+<h2>Copy and paste</h2>
+<ul>
+<li><strong><code>v</code></strong> : Aktiviert den <strong>zeichenweisen</strong> Visual Mode. Du markierst ab dem Cursor Buchstabe für Buchstabe.</li>
+<li><strong><code>V</code> (Shift + v)</strong> : Aktiviert den <strong>zeilenweisen</strong> Visual Mode. Markiert sofort die ganze aktuelle Zeile und jede weitere, zu der du scrollst (perfekt für ganze Abschnitte).</li>
+<li><strong><code>y</code></strong> : Kopieren (<em>yank</em>) – Kopiert den aktuell markierten Text (im Visual Mode).</li>
+<li><strong><code>d</code></strong> : Ausschneiden / Löschen (<em>delete</em>) – Schneidet den aktuell markierten Text aus.</li>
+<li><strong><code>p</code></strong> : Einfügen (<em>paste</em>) – Fügt den kopierten/ausgeschnittenen Text <em>nach</em> dem Cursor (oder unter der aktuellen Zeile) ein.</li>
+<li><strong><code>P</code> (Shift + p)</strong> : Einfügen <em>vor</em> dem Cursor (oder über der aktuellen Zeile).</li>
+<li><strong><code>yiw</code></strong> : Kopiert das aktuelle Wort, auf dem der Cursor steht (<em>yank inner word</em>).</li>
+<li><strong><code>diw</code></strong> : Schneidet das aktuelle Wort aus, auf dem der Cursor steht (<em>delete inner word</em>).</li>
+<li><strong><code>y$</code></strong> : Kopiert alles von der aktuellen Cursorposition bis zum Ende der Zeile.</li>
+<li><strong><code>d$</code></strong> : Schneidet alles von der aktuellen Cursorposition bis zum Ende der Zeile aus.</li>
+</ul>
+<hr />
+<h1>VS</h1>
+<ul>
+<li><p>Cmd + Shift + 7 - aus-/einkommentieren</p>
+</li>
+<li><p>Cmd + Shift + v - Render Markdown (and switch back)</p>
+</li>
+</ul>
+<hr />
+<h1>Git</h1>
+<ul>
+<li><p>git log --oneline</p>
+</li>
+<li><p>git diff datei: Änderungen anzeigen</p>
+</li>
+<li><p>stage: git add [path]</p>
+</li>
+<li><p>commit: git commit -m [comment]</p>
+</li>
+<li><p>push to github: git push</p>
+</li>
+<li><p>git status</p>
+</li>
+</ul>
+<hr />
+<h1>MD</h1>
+<table>
+<thead>
+<tr>
+  <th>Syntax</th>
+  <th>Result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td><code>*italic*</code> or <code>_italic_</code></td>
+  <td><em>italic</em></td>
+</tr>
+<tr>
+  <td><code>**bold**</code></td>
+  <td><strong>bold</strong></td>
+</tr>
+<tr>
+  <td><code>***bold italic***</code></td>
+  <td><em><strong>bold italic</strong></em></td>
+</tr>
+<tr>
+  <td><code>~~strikethrough~~</code></td>
+  <td><del>strikethrough</del></td>
+</tr>
+</tbody>
+</table>
+<h2>Links and Images</h2>
+<table>
+<thead>
+<tr>
+  <th>Syntax</th>
+  <th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td><code>[text](https://url.com)</code></td>
+  <td>Link</td>
+</tr>
+<tr>
+  <td><code>[text](url &quot;tooltip&quot;)</code></td>
+  <td>Link with hover title</td>
+</tr>
+<tr>
+  <td><code>![alt text](image.png)</code></td>
+  <td>Image</td>
+</tr>
+<tr>
+  <td><code>&lt;https://url.com&gt;</code></td>
+  <td>Auto-link</td>
+</tr>
+</tbody>
+</table>
+<h2>Code</h2>
+<p><strong>Inline:</strong> <code>`code`</code> → <code>code</code></p>
+<p><strong>Block</strong> (specify language for highlighting):</p>
+<pre><code>```python
+print(&quot;hello&quot;)
+```
+</code></pre>
+<h2>Blockquote</h2>
+<pre><code>&gt; Quoted text
+&gt;&gt; Nested quote
+</code></pre>
+<h2>Tables</h2>
+<pre><code>| Left | Center | Right |
+|:-----|:------:|------:|
+| a    | b      | c     |
+</code></pre>
+<p>Colons in the separator row set alignment.</p>
+<footer><hr><a href="main.html">Back to main</a></footer></main>
+</div>
+</body>
+</html>

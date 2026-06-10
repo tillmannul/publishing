@@ -75,6 +75,7 @@ for title, filename in ARTICLES:
         md = f.read()
     content_html = renderer(md)
     content_html = fix_internal_links(content_html, ARTICLES)
+    content_html += '<footer><hr><a href="main.html">Back to main</a></footer>'
     sidebar_html = build_sidebar(ARTICLES, filename)
     page = TEMPLATE.replace("{{TITLE}}", title) \
                    .replace("{{SIDEBAR}}", sidebar_html) \

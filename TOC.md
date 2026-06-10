@@ -1,3 +1,3 @@
 - [Shortcuts](shortcuts.md)
 - [Budgy](budgy.md)
-
+- [Lorem](lorem.md)
