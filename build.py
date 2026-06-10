@@ -1,15 +1,30 @@
+import re
 import shutil
 
 import mistune
 from pathlib import Path
 
-# --- Welche Artikel werden gebaut?
+# --- Artikelliste aus TOC.md laden
 
-ARTICLES = [
-    ("Building in Public, Quietly", "helloworld.md"),
-    ("Notizen zum Generator", "generator.md"),
-    ("Hilfreiche Shortcuts", "shortcuts.md")
-]
+def load_toc(path="TOC.md"):
+    entries = []
+    for line in Path(path).read_text().splitlines():
+        m = re.match(r'\s*-\s*\[(.+?)\]\((.+?\.md)\)', line)
+        if m:
+            entries.append((m.group(1), m.group(2)))
+    return entries
+
+ARTICLES = load_toc()
+
+# --- Sidebar-HTML generieren
+
+def build_sidebar(articles, current_filename):
+    items = []
+    for title, filename in articles:
+        html_name = filename.replace(".md", ".html")
+        cls = ' class="active"' if filename == current_filename else ''
+        items.append(f'<li><a href="{html_name}"{cls}>{title}</a></li>')
+    return f'<nav><ul>{"".join(items)}</ul></nav>'
 
 TEMPLATE = """<!DOCTYPE html>
 <html lang="de">
@@ -20,12 +35,15 @@ TEMPLATE = """<!DOCTYPE html>
    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-{{CONTENT}}
+<div class="layout">
+  <aside class="sidebar">{{SIDEBAR}}</aside>
+  <main class="content">{{CONTENT}}</main>
+</div>
 </body>
 </html>
 """
 
-# Configure the converter: allow raw HTML through, enable tyble syntax
+# Configure the converter: allow raw HTML through, enable table syntax
 renderer = mistune.create_markdown(escape=False, plugins=["table", "strikethrough"])
 
 # Fix links from md to html
@@ -47,12 +65,13 @@ for title, filename in ARTICLES:
         md = f.read()
     content_html = renderer(md)
     content_html = fix_internal_links(content_html, ARTICLES)
+    sidebar_html = build_sidebar(ARTICLES, filename)
     page = TEMPLATE.replace("{{TITLE}}", title) \
-                    .replace("{{CONTENT}}", content_html)
+                   .replace("{{SIDEBAR}}", sidebar_html) \
+                   .replace("{{CONTENT}}", content_html)
     out_name = filename.replace(".md", ".html")
     with open(docs / out_name, "w") as f:
         f.write(page)
-    print (f" docs/{out_name}")
+    print(f" docs/{out_name}")
 
 print(f"Fertig: {len(ARTICLES)} Seiten in docs/")
-

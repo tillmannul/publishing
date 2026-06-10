@@ -1,16 +1,67 @@
-/* Grundlayout: lesbare Spaltenbreite, zentriert */
+/* Grundfarben und Schrift */
 body {
-    max-width: 70ch;
-    margin: 2rem auto;
-    padding: 0 1.2rem;
     font-family: -apple-system, system-ui, sans-serif;
     font-size: 1.1rem;
     line-height: 1.6;
-    color: #2f2c26;       
-    background: #f3eee1;     
+    color: #2f2c26;
+    background: #f3eee1;
+    margin: 0;
 }
 
-/* Überschriften: etwas Luft darüber */
+/* Zweispaltiges Grid-Layout */
+.layout {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    min-height: 100vh;
+}
+
+/* Linke Seitenleiste */
+.sidebar {
+    background: #ece6d5;
+    border-right: 1px solid #d8d0bf;
+    padding: 2rem 1rem;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    box-sizing: border-box;
+}
+
+.sidebar nav ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.sidebar nav li {
+    margin-bottom: 0;
+}
+
+.sidebar nav a {
+    display: block;
+    padding: 0.4rem 0.6rem;
+    border-radius: 4px;
+    color: #2f2c26;
+    text-decoration: none;
+    font-size: 0.95rem;
+}
+
+.sidebar nav a:hover {
+    background: #ddd7c5;
+}
+
+.sidebar nav a.active {
+    color: #1a5fb4;
+    font-weight: 600;
+}
+
+/* Hauptinhalt */
+.content {
+    max-width: 70ch;
+    padding: 2rem 2rem 4rem;
+}
+
+/* Überschriften */
 h1, h2, h3 {
     line-height: 1.2;
     margin-top: 2rem;
@@ -21,12 +72,12 @@ a {
     color: #1a5fb4;
 }
 
-/* Abstand zwischen Absätzen */
+/* Absätze */
 p {
     margin: 0 0 0.5rem;
 }
 
-/* Abstand zwischen Listenpunkten */
+/* Listenpunkte */
 li {
     margin-bottom: 0.5rem;
 }
@@ -39,7 +90,7 @@ code {
     font-size: 0.9em;
 }
 
-/* Tabellen mit sichtbaren Linien */
+/* Tabellen */
 table {
     border-collapse: collapse;
 }
@@ -54,4 +105,29 @@ blockquote {
     margin-left: 0;
     padding-left: 1rem;
     color: #555;
+}
+
+/* Mobil: einspaltig, Sidebar oben */
+@media (max-width: 640px) {
+    .layout {
+        grid-template-columns: 1fr;
+    }
+
+    .sidebar {
+        position: static;
+        height: auto;
+        border-right: none;
+        border-bottom: 1px solid #d8d0bf;
+        padding: 1rem;
+    }
+
+    .sidebar nav ul {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.25rem;
+    }
+
+    .content {
+        padding: 1.5rem 1.2rem 3rem;
+    }
 }
