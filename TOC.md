@@ -3,3 +3,4 @@
 <!-- - [Lorem](lorem.md) -->
 - [Projekt Diktiergerät](diktiergeraet.md)
 - [Projekt CTM](captablemanagement.md)
+- [Resources](resources.md)

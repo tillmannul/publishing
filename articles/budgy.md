@@ -1,5 +1,6 @@
 # TASKS
 
+*Moved to strategy compass*
 -  **Product deconstruction session**:  
 Deconstruct some great product comes — what is it that feels great or doesn’t? — turn it into a habit
 - **Visualisierung**: see deepdive section

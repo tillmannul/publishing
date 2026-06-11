@@ -1,4 +1,8 @@
 
+# Setup
+
+*In project folder:* source .venv/bin/activate
+
 # VI
 
 ## Mode-Wechsel
