@@ -51,6 +51,7 @@
       2) Publish stuff website like aiaiai.com 
 - Collect and list business ideas. From july on, test them
 - Follow your instinct. If something seems interesting, it’s okay to try it out even if no clear outcome is in sight (yet… but do push for one!)
+- Use frameworks from sales and product development daily. Problem Identification Chart, Product Deconstruction, etc
 
 
 ## High-level time planning

@@ -3,457 +3,284 @@
 <head>
    <meta charset="utf-8">
    <meta name="viewport" content="width=device-width, initial-scale=1">
-   <title>Projekt CTM</title>
+   <title>*[completed]* Projekt CTM</title>
    <meta name="robots" content="noindex">
    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 <div class="layout">
-  <aside class="sidebar"><nav><ul><li><a href="shortcuts.html">Shortcuts</a></li><li><a href="budgy.html">Budgy</a></li><li><a href="diktiergeraet.html">Projekt Diktiergerät</a></li><li><a href="captablemanagement.html" class="active">Projekt CTM</a></li><li><a href="resources.html">Resources</a></li></ul></nav></aside>
-  <main class="content"><h1>Projekt Cap Table Management (CTM)</h1>
+  <aside class="sidebar"><nav><ul><li><a href="shortcuts.html">Shortcuts</a></li><li><a href="budgy.html">Budgy</a></li><li><a href="diktiergeraet.html">Projekt Diktiergerät</a></li><li><a href="captablemanagement.html" class="active">*[completed]* Projekt CTM</a></li><li><a href="resources.html">Resources</a></li></ul></nav></aside>
+  <main class="content"><h1>CTM Tool — Project Briefing (as built)</h1>
+<p>Internal tool replacing Ledgy for cap table and ESOP management. This version documents the <strong>delivered</strong> architecture. For day-to-day procedures see <code>CTM_manual.md</code>.</p>
 <blockquote>
-<p><strong>CTM</strong> = Cap Table Management. Internal tool to replace currenttool for cap table and ESOP management.</p>
+<p><strong>Outcome:</strong> a single Google Sheet, reconciled to Ledgy (371,497 issued shares), with computed ESOP, four-bucket accounting, audit logging, and a 4-eye workflow. Ledgy can be decommissioned.</p>
 </blockquote>
 <hr />
-<h2>1. Purpose &amp; scope</h2>
-<p>Replace currenttool with the <strong>simplest defensible</strong> tool that is the <strong>single source of truth</strong> for the cap table and ESOP, leverages our existing <strong>GSuite</strong> stack, and is actually used (currenttool's hidden cost is non-use due to complexity).</p>
-<p><strong>In scope</strong></p>
-<ul>
-<li>Cap table: source of truth + versioning + safe editing + CSV export + filtering (P2)</li>
-<li>ESOP: pool-level and per-employee status (CFO view only)</li>
-<li>Setup: import from currenttool exports + consistency checks</li>
-</ul>
-<p><strong>Out of scope</strong></p>
-<ul>
-<li>ESOP holder self-service → employees ask CFO</li>
-<li>The tool is <strong>not</strong> the statutory share register (Aktienregister). It is the <strong>source of truth from which the register is generated</strong> (PDF/export). Common practice at small AGs.</li>
-</ul>
-<hr />
-<h2>2. Decision: recommended approach</h2>
-<p><strong>Recommended: Google Sheets in a restricted Shared Drive</strong>, using native version history for versioning, protected ranges for safeguards, computed ESOP status, and a reconciliation tab for the currenttool cross-check.</p>
-<h3>Why this, not the alternatives</h3>
+<h2>1. Why this shape</h2>
 <table>
 <thead>
 <tr>
-  <th>Option</th>
-  <th>Verdict</th>
-  <th>Reason</th>
+  <th>Driver</th>
+  <th>Decision</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-  <td><strong>A. Google Sheets (native version history)</strong></td>
-  <td>✅ <strong>Chosen</strong></td>
-  <td>Meets stated versioning need (view prior states before restoring), GSuite-native, CFO-editable, 3-4 concurrent editors fine, ~3100 rows trivial</td>
+  <td>Simplicity + actual use (Ledgy was costly and under-used)</td>
+  <td>A Google Sheet, not a custom app</td>
 </tr>
 <tr>
-  <td>B. Sheets + CSV snapshots in private Git</td>
-  <td>❌ Over-built</td>
-  <td>Git was only needed for true diff/branch — you downgraded to timestamped restore. Removes the need.</td>
+  <td>GSuite-native, low maintenance</td>
+  <td>Native version history + Apps Script</td>
 </tr>
 <tr>
-  <td>C. CSV/YAML in Git via PR review</td>
-  <td>❌</td>
-  <td>Not editable by accounting/HR; engineer-only</td>
+  <td>Legal-grade but not the statutory register</td>
+  <td>Tool is the <strong>source of truth</strong> from which the register is generated</td>
 </tr>
 <tr>
-  <td>D. Custom web app + DB</td>
-  <td>❌</td>
-  <td>High maintenance + key-person risk; you'd own security and upkeep forever. Avoid building what you must own (Fadell, <em>Build</em>).</td>
+  <td>Few editors (CFO, Accounting, HR)</td>
+  <td>Procedural 4-eye + soft controls, not a workflow engine</td>
 </tr>
 </tbody>
 </table>
-<blockquote>
-<p><em>Diagnosis before design (Rumelt, Good Strategy/Bad Strategy):</em> the real problem was <strong>non-use of an over-complex tool</strong>, not a missing feature. The fix is simplicity, not capability.</p>
-</blockquote>
-<h3>What we are trading (inversion — Munger)</h3>
-<table>
-<thead>
-<tr>
-  <th>We give up (vs. currenttool)</th>
-  <th>Mitigation</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-  <td>Recognized-system trust in diligence</td>
-  <td>Keep clean exports + generate formal register from notary/fiduciary</td>
-</tr>
-<tr>
-  <td>Built-in ESOP automation</td>
-  <td>Replicate with formulas (math is simple date arithmetic)</td>
-</tr>
-<tr>
-  <td>Vendor-managed security</td>
-  <td>Lock down via Workspace controls (§7)</td>
-</tr>
-</tbody>
-</table>
+<p>The full event-sourced &quot;mini-Ledgy&quot; was deliberately rejected as over-engineering. The tool stores current state and keeps the imported ledger frozen for audit.</p>
 <hr />
-<h2>3. Requirements → solution mapping</h2>
-<table>
-<thead>
-<tr>
-  <th>#</th>
-  <th>Requirement</th>
-  <th>Solution</th>
-  <th>Prio</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-  <td>1</td>
-  <td>Single source of truth</td>
-  <td>One workbook, one owner, restricted access</td>
-  <td>P1</td>
-</tr>
-<tr>
-  <td>1</td>
-  <td>Stock types, dates, shareholder type</td>
-  <td>Structured columns + data validation</td>
-  <td>P1</td>
-</tr>
-<tr>
-  <td>1</td>
-  <td>Versioning, view + restore prior states</td>
-  <td>Native version history + named versions</td>
-  <td>P1</td>
-</tr>
-<tr>
-  <td>1</td>
-  <td>Easy edits with safeguards</td>
-  <td>Protected ranges, validation, edit roles</td>
-  <td>P1</td>
-</tr>
-<tr>
-  <td>1</td>
-  <td>CSV export</td>
-  <td>Native (File → Download → CSV)</td>
-  <td>P1</td>
-</tr>
-<tr>
-  <td>1</td>
-  <td>View/filter, incl. per group</td>
-  <td>Filter views; or post-export in sheet</td>
-  <td>P2</td>
-</tr>
-<tr>
-  <td>2</td>
-  <td>Pool-level ESOP status</td>
-  <td>Dashboard tab, <code>SUMIFS</code> rollups</td>
-  <td>P1</td>
-</tr>
-<tr>
-  <td>2</td>
-  <td>Per-employee ESOP status</td>
-  <td>Grants tab, computed vesting</td>
-  <td>P1</td>
-</tr>
-<tr>
-  <td>2</td>
-  <td>Employee self-service</td>
-  <td>Dropped → ask CFO</td>
-  <td>—</td>
-</tr>
-<tr>
-  <td>3</td>
-  <td>Import from currenttool</td>
-  <td>CSV import</td>
-  <td>P1</td>
-</tr>
-<tr>
-  <td>3</td>
-  <td>Consistency checks vs. currenttool</td>
-  <td>Reconciliation tab (totals diff)</td>
-  <td>P1</td>
-</tr>
-</tbody>
-</table>
-<hr />
-<h2>4. Workbook structure</h2>
+<h2>2. Tabs (final)</h2>
 <table>
 <thead>
 <tr>
   <th>Tab</th>
-  <th>Content</th>
-  <th>Notes</th>
+  <th>Role</th>
+  <th>Editable</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-  <td><code>CapTable_Core</code></td>
-  <td>~100 named holders (common + preferred): name, address, class, qty, acquisition date, holder type</td>
-  <td>The active, frequently-viewed table</td>
+  <td><code>Dashboard</code></td>
+  <td>Cap table + ESOP overview, fully-diluted, checks band</td>
+  <td>No</td>
 </tr>
 <tr>
-  <td><code>CapTable_Crowd</code></td>
-  <td>~3000 crowd-shareholders (common)</td>
-  <td>Static block, imported once, rarely changes. Separated to keep core clean.</td>
+  <td><code>CapTable</code></td>
+  <td>One row per holder × agreement (the register source)</td>
+  <td>Yes</td>
+</tr>
+<tr>
+  <td><code>CapTable_View_Core</code> / <code>_Crowd</code></td>
+  <td>Read-only <code>QUERY</code> views</td>
+  <td>No</td>
 </tr>
 <tr>
   <td><code>ESOP_Grants</code></td>
-  <td>One row per grant: employee, grant date, qty, cliff, vesting period, strike, class</td>
-  <td>Drives all ESOP math</td>
+  <td>One row per allocation agreement; vesting + 4 buckets computed</td>
+  <td>Inputs only</td>
 </tr>
 <tr>
-  <td><code>ESOP_Dashboard</code></td>
-  <td>Pool-level rollups</td>
-  <td>Read-only, formula-driven</td>
+  <td><code>ESOP_Events</code></td>
+  <td>One row per exercise / termination</td>
+  <td>Yes</td>
 </tr>
 <tr>
-  <td><code>Reconciliation</code></td>
-  <td>currenttool totals vs. tool totals</td>
-  <td>Used at migration + periodically</td>
+  <td><code>ESOP_view</code></td>
+  <td>Per-person ESOP view (debugging/reconciliation)</td>
+  <td>No</td>
 </tr>
 <tr>
-  <td><code>Reference</code></td>
-  <td>Dropdown lists, classes, holder types</td>
-  <td>Powers data validation</td>
+  <td><code>History</code></td>
+  <td>Frozen Ledgy transaction export at migration</td>
+  <td>No</td>
 </tr>
 <tr>
   <td><code>Changelog</code></td>
-  <td>Manual log of material changes + date + author</td>
-  <td>Discipline layer on top of version history</td>
+  <td>The &quot;why&quot; + 4-eye sign-off</td>
+  <td>Yes</td>
+</tr>
+<tr>
+  <td><code>Reference</code></td>
+  <td>Dropdown source lists</td>
+  <td>Rarely</td>
 </tr>
 </tbody>
 </table>
-<blockquote>
-<p>[Inference] Separating crowd-shareholders is the one design choice the scale forces. Everything else is standard.</p>
-</blockquote>
+<p>Convention: <strong>blue = input, grey = computed</strong> (one sanctioned exception, §4).</p>
 <hr />
-<h2>5. Versioning approach</h2>
+<h2>3. Cap table model</h2>
 <ul>
-<li><strong>Mechanism:</strong> Google Sheets <strong>version history</strong> — every edit timestamped + attributed; prior states <strong>viewable before restore</strong> (matches your Google Docs-style requirement).</li>
-<li><strong>Discipline:</strong> create a <strong>named version</strong> at each material change (new round, ESOP grant batch, crowd import). Named versions are the &quot;save points&quot; you'll actually navigate to.</li>
-<li><strong>Backup (optional, low-effort):</strong> scheduled CSV snapshot to a separate Drive folder for an immutable copy. Decide in Phase 3.</li>
+<li><strong>One row per holder × agreement</strong> (model B). A <code>person_id</code> is the spine that links a human across SHA, CIA, and ESOP. Dual holders (core + crowd) appear as two rows sharing one <code>person_id</code> — no fuzzy name-merging.</li>
+<li><strong>Three effective classes</strong> via <code>agreement</code> × stock type: SHA-common, SHA-preferred, CIA-common. Agreement derived at import: Crowd → CIA, else SHA.</li>
+<li><strong>Crowd</strong>: ~2,945 individual beneficiaries (one row each), nested in Ledgy under three entities (CH / AT / DE), carried as <code>crowd_entity</code>.</li>
+<li>Snapshot, not a ledger: rare discrete edits; round-level history lives in <code>History</code>.</li>
 </ul>
-<blockquote>
-<p>[Unverified] Version-history retention and granularity depend on Workspace tier and may group rapid edits. Confirm against your tier before relying on it as sole history.</p>
-</blockquote>
 <hr />
-<h2>6. Safeguards (against accidental damage)</h2>
+<h2>4. ESOP model</h2>
+<p>Vesting is computed <strong>Linear</strong>, evaluated at a single <strong>valuation-date assumption</strong> (<code>ESOP_Grants!K3</code>, normally <code>=TODAY()</code>, overridable to simulate). Each grant is split into four buckets that always sum to <code>granted_qty</code>:</p>
 <table>
 <thead>
 <tr>
-  <th>Safeguard</th>
-  <th>Purpose</th>
+  <th>Bucket</th>
+  <th>Meaning</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-  <td><strong>Protected ranges</strong> on headers, formulas, computed columns</td>
-  <td>Prevent structural breakage</td>
+  <td><code>exercised</code></td>
+  <td>Physical exercises → became common shares</td>
 </tr>
 <tr>
-  <td><strong>Data validation</strong> (dropdowns, date/number rules)</td>
-  <td>Stop malformed entries at source</td>
+  <td><code>vested</code></td>
+  <td>Vested, not exercised</td>
 </tr>
 <tr>
-  <td><strong>Edit vs. view roles</strong> within the team</td>
-  <td>Limit who can change core data</td>
+  <td><code>granted_unvested</code></td>
+  <td>Not yet vested (active grants)</td>
 </tr>
 <tr>
-  <td><strong>Named versions</strong> before bulk edits</td>
-  <td>One-click recovery point</td>
-</tr>
-<tr>
-  <td><strong>Reconciliation totals</strong> always visible</td>
-  <td>Catch silent errors fast</td>
+  <td><code>returned_to_pool</code></td>
+  <td>Cancelled back to pool: terminated-unvested <strong>+ cash-settled exercises</strong></td>
 </tr>
 </tbody>
 </table>
-<blockquote>
-<p>[Unverified] Protected ranges reduce accidental edits; they do not <em>prevent</em> all error (an editor with edit rights can still override). Label: a control, not a guarantee.</p>
-</blockquote>
-<hr />
-<h2>7. Confidentiality &amp; GSuite</h2>
+<p>Each grant carries a <code>row_check</code> (the four buckets must equal <code>granted_qty</code>, none negative). Pool-level and per-row checksums both exist.</p>
+<p><strong>Rules encoded:</strong></p>
 <table>
 <thead>
 <tr>
-  <th>Control</th>
-  <th>Action</th>
+  <th>Case</th>
+  <th>Handling</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-  <td>Storage</td>
-  <td>Dedicated <strong>restricted Shared Drive</strong>, membership = CFO + accounting + HR only</td>
+  <td>Termination <strong>before</strong> cliff</td>
+  <td>vested = 0; whole package → <code>returned_to_pool</code></td>
 </tr>
 <tr>
-  <td>External sharing</td>
-  <td><strong>Disabled</strong> on that Shared Drive</td>
+  <td>Termination <strong>after</strong> cliff</td>
+  <td>keeps vested-at-termination; rest → <code>returned_to_pool</code></td>
 </tr>
 <tr>
-  <td>Authentication</td>
-  <td>Enforce <strong>2-step verification</strong> for all members (Admin console)</td>
+  <td><strong>Physical</strong> exercise</td>
+  <td>→ <code>exercised</code>; employee added to <code>CapTable</code> (same <code>person_id</code>)</td>
 </tr>
 <tr>
-  <td>Audit</td>
-  <td>Workspace <strong>audit log</strong> for access/edit trail</td>
+  <td><strong>Cash</strong> exercise</td>
+  <td>options consumed, no shares; qty → <code>returned_to_pool</code> (Dashboard shows a &quot;thereof settled in cash&quot; sub-line)</td>
 </tr>
 <tr>
-  <td>DLP</td>
-  <td>[Unverified — tier-dependent] Data Loss Prevention rules if on Business Plus / Enterprise</td>
-</tr>
-<tr>
-  <td>Link hygiene</td>
-  <td>No &quot;anyone with link&quot;; no export to personal accounts</td>
+  <td>Non-linear / bespoke (e.g. full forfeiture despite post-cliff exit; employment-% change)</td>
+  <td><code>is_approx = Yes</code> + overtype <code>vested_calc</code> with the agreed figure (the sanctioned grey-cell exception); buckets recompute and the row-check still validates</td>
 </tr>
 </tbody>
 </table>
-<blockquote>
-<p>[Unverified] Specific availability of DLP, retention, and audit depth depends on your Workspace edition. Verify edition before finalizing the security design.</p>
-</blockquote>
+<p>Vesting rounds <strong>down</strong> (an option vests only once fully earned).</p>
 <hr />
-<h2>8. ESOP model</h2>
-<p><strong>Pool-level status</strong> (Dashboard, computed):</p>
+<h2>5. Views</h2>
+<ul>
+<li><strong><code>Dashboard</code></strong>: cap table by holder type (issued % and fully-diluted %), ESOP pool status (exercised / vested-not-exercised / granted-not-vested / not-granted, summing to pool size), accuracy flag for non-linear grants, and a checks band.</li>
+<li><strong><code>CapTable_View_Core</code></strong>: core holders as individuals, sorted by type then name.</li>
+<li><strong><code>CapTable_View_Crowd</code></strong>: all crowd investors, grouped CH → AT → DE then name.</li>
+<li><strong><code>ESOP_view</code></strong>: per-person aggregation (granted, exercised, vested, granted_unvested, returned_to_pool), sortable by status then name, with grant-count and status flags for debugging.</li>
+</ul>
+<hr />
+<h2>6. Fully-diluted model</h2>
+<p>Fully-diluted total adds three inputs to issued shares (implemented and tested):</p>
 <table>
 <thead>
 <tr>
-  <th>State</th>
+  <th>Component</th>
   <th>Definition</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-  <td>Converted</td>
-  <td>Exercised → became shares</td>
+  <td>Issued shares</td>
+  <td>from <code>CapTable</code></td>
 </tr>
 <tr>
-  <td>Vested, not converted</td>
-  <td>Vested but not yet exercised</td>
+  <td><strong>ESOP (3a)</strong></td>
+  <td>pool size − exercised (exercised already counted in issued; avoids double-count). Checksummed against pool − exercised</td>
 </tr>
 <tr>
-  <td>Granted, not vested</td>
-  <td>Allocated, still vesting</td>
+  <td><strong>KWK (3b)</strong> — Kunden werben Kunden</td>
+  <td>input cell</td>
 </tr>
 <tr>
-  <td>Not granted</td>
-  <td>Remaining pool</td>
+  <td><strong>Bond (3c)</strong></td>
+  <td>input cell</td>
 </tr>
 </tbody>
 </table>
-<p><strong>Per-employee status</strong> (Grants tab, computed):</p>
-<ul>
-<li>Allocated → <strong>vested / not vested</strong> (date arithmetic: grant date, cliff, vesting period)</li>
-<li>Exercised → <strong>settled cash / settled physical / not exercised</strong></li>
-</ul>
-<blockquote>
-<p>All ESOP changes are also documented in allocation agreements, so the sheet is a <em>view</em>, not the only record. Unwinding an error is cumbersome but bounded.</p>
-</blockquote>
-<p>Formula design is deferred to the implementation phase.</p>
+<p><code>Fully-diluted total = issued + ESOP(3a) + KWK(3b) + Bond(3c)</code>. The <code>CapTable_View</code> percentages reference this FD-total cell.</p>
 <hr />
-<h2>9. Setup &amp; migration from currenttool</h2>
-<ol>
-<li><strong>Export</strong> cap table + ESOP from currenttool as CSV.</li>
-<li><strong>Import</strong> into the structured tabs (map columns to schema).</li>
-<li><strong>Reconcile</strong> in <code>Reconciliation</code> tab:<ul>
-<li>Total shares per class (tool vs. currenttool)</li>
-<li>Total holders / crowd count</li>
-<li>ESOP pool size + per-holder vested/granted totals</li>
-<li>Any nonzero diff = investigate before go-live.</li>
-</ul>
-</li>
-<li><strong>Parallel run</strong> for a defined period, then decommission currenttool.</li>
-</ol>
-<hr />
-<h2>10. Risks &amp; open questions</h2>
+<h2>7. Versioning, controls, security</h2>
 <table>
 <thead>
 <tr>
-  <th>#</th>
-  <th>Open question</th>
-  <th>Why it matters</th>
+  <th>Layer</th>
+  <th>Mechanism</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-  <td>1</td>
-  <td>Statutory register: who maintains it (notary/fiduciary) and in what format?</td>
-  <td>Confirms the tool is a <em>source</em>, not the legal record</td>
+  <td>Versioning</td>
+  <td>Google native version history (view-before-restore); named versions at material changes</td>
 </tr>
 <tr>
-  <td>2</td>
-  <td>Crowd-shareholders: held <strong>directly</strong> or via <strong>nominee / pooling vehicle</strong>?</td>
-  <td>Affects register structure + whether 3000 rows are individuals or one block</td>
+  <td>Audit (mechanical)</td>
+  <td>Apps Script <code>onEdit</code> auto-logs who/when/cell/old→new to <code>Changelog</code></td>
 </tr>
 <tr>
-  <td>3</td>
-  <td>Number of ESOP holders + vesting schedule (standard vs. per-grant custom)?</td>
-  <td>Determines formula complexity</td>
+  <td>Audit (why)</td>
+  <td>Manual <code>Changelog</code> note</td>
 </tr>
 <tr>
-  <td>4</td>
-  <td>Workspace edition (Business Starter/Standard/Plus/Enterprise)?</td>
-  <td>Gates DLP, audit depth, retention</td>
+  <td>4-eye</td>
+  <td><code>prepared_by</code> ≠ <code>approved_by</code> + <code>approved_date</code>; named version for material changes</td>
 </tr>
 <tr>
-  <td>5</td>
-  <td>Who <strong>owns and maintains</strong> the workbook long-term?</td>
-  <td>Avoids new key-person risk</td>
+  <td>Computed cells</td>
+  <td>Protected ranges (formula-owner only)</td>
 </tr>
 <tr>
-  <td>6</td>
-  <td>Beneficial-owner records (&gt;25% holders, Art. 697j ff. OR) — handled where?</td>
-  <td>[Unverified] Compliance obligation; confirm with counsel</td>
+  <td><code>History</code></td>
+  <td>Protected, read-only</td>
+</tr>
+<tr>
+  <td>Security</td>
+  <td>Restricted Shared Drive (3–4 members), external sharing off, 2FA enforced</td>
 </tr>
 </tbody>
 </table>
-<blockquote>
-<p>[Unverified] All legal/compliance points (statutory register, beneficial ownership, GAFI) require confirmation with your corporate counsel or fiduciary. This briefing does not constitute legal advice.</p>
-</blockquote>
+<p>[Inference] Controls are proportionate to scale: the Sheet cannot hard-enforce 4-eye, so the discipline is procedural, with the checks band as the safety net.</p>
 <hr />
-<h2>11. Roadmap</h2>
-<table>
-<thead>
-<tr>
-  <th>Phase</th>
-  <th>Goal</th>
-  <th>Output</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-  <td><strong>0. Decide &amp; secure</strong></td>
-  <td>Confirm approach + open questions §10; set up restricted Shared Drive + access controls</td>
-  <td>Approved approach, secured workspace</td>
-</tr>
-<tr>
-  <td><strong>1. Structure</strong></td>
-  <td>Build workbook tabs, schema, validation, protected ranges</td>
-  <td>Empty, locked-down structure</td>
-</tr>
-<tr>
-  <td><strong>2. Migrate</strong></td>
-  <td>Import currenttool exports; reconcile to zero diff</td>
-  <td>Populated, reconciled source of truth</td>
-</tr>
-<tr>
-  <td><strong>3. ESOP + safeguards</strong></td>
-  <td>Vesting formulas, dashboard, named-version discipline, optional snapshot</td>
-  <td>Working ESOP view + recovery process</td>
-</tr>
-<tr>
-  <td><strong>4. Cutover</strong></td>
-  <td>Parallel run, then decommission currenttool</td>
-  <td>currenttool cancelled, CTM live</td>
-</tr>
-</tbody>
-</table>
-<hr />
-<h2>12. Assumptions &amp; decision log</h2>
+<h2>8. Migration &amp; reconciliation (record)</h2>
 <ul>
-<li>Entity: <strong>AG</strong>.</li>
-<li>Scale: ~100 named holders (common + preferred) + ~3000 crowd-shareholders (common).</li>
-<li>Cap table changes: <strong>rare</strong>. ESOP changes: <strong>more frequent</strong>, always documented elsewhere.</li>
-<li>Versioning need: <strong>timestamped restore + view-before-restore</strong> (not diff/branch).</li>
-<li>Editors: <strong>3-4</strong> (CFO + accounting + HR).</li>
-<li>currenttool cost: <strong>&gt;5,000 CHF/yr</strong>, under-used due to complexity.</li>
-<li>Tool is the <strong>source of truth</strong>, not the statutory register.</li>
+<li><strong>Sources:</strong> three Ledgy exports — Transactions (event ledger), Cap table Detailed (holdings), Grants by Pool (grant-level statuses).</li>
+<li><strong>Reading caveat (encoded as a lesson):</strong> one export's malformed stylesheet broke standard readers and silently truncated it; caught by reconciliation, fixed by parsing the raw XML. Reconciliation totals are the completeness tripwire.</li>
+<li><strong>Cap table:</strong> sum <code>Common</code>/<code>Preferred issued</code> per holder (nets transfers, includes exercises) → ties exactly to <strong>371,497</strong> issued (143,496 common + 228,001 preferred).</li>
+<li><strong>ESOP:</strong> grants from Option transactions (with vesting terms); events from Exercise + Termination. Cross-checked against Grants-by-Pool: <strong>55,849</strong> options ever granted, <strong>129</strong> terminated grants — matched both sources. (Cumulative grants exceed the 40,000 pool because returned options were re-granted.)</li>
+<li><strong>Manual calibrations:</strong> unify one dual holder's <code>person_id</code>; verify <code>is_approx</code> on non-linear grants; the single cash settlement; special-agreement forfeitures.</li>
 </ul>
-<blockquote>
-<p><em>Drucker, The Effective Executive:</em> effectiveness is doing the right things. Here that means a tool the team will actually use, not the most capable one.</p>
-</blockquote>
+<hr />
+<h2>9. Decisions &amp; principles (log)</h2>
+<ul>
+<li>Sheet over custom app; source-of-truth over statutory register.</li>
+<li>Model B (holder × agreement) with <code>person_id</code> spine.</li>
+<li>Per-entity hybrid storage: snapshot <code>CapTable</code> + frozen <code>History</code> + computed ESOP.</li>
+<li>Four-bucket ESOP summing to <code>granted_qty</code>; Linear vesting; single valuation-date assumption.</li>
+<li><code>is_approx</code> flag + sanctioned <code>vested_calc</code> override for bespoke cases (no general override column).</li>
+<li>ROUNDDOWN vesting; cash exercise → pool, not conversion.</li>
+<li>Over-engineering avoided throughout (no Git layer, no event-sourcing, no performance-grant type that doesn't exist).</li>
+</ul>
+<hr />
+<h2>10. Maintenance &amp; next</h2>
+<ul>
+<li>Decommission Ledgy after a final parallel check.</li>
+<li>Name a clean &quot;known-good&quot; version as the baseline.</li>
+<li>Keep publishing changes via <code>Changelog</code> + named versions.</li>
+<li>Re-run the §7 tests in <code>CTM_manual.md</code> after any material change.</li>
+</ul>
+<p><em>Day-to-day procedures, the 4-eye workflow, and the test suite live in <code>CTM_manual.md</code>.</em></p>
 <footer><hr><a href="index.html">Back to main</a></footer></main>
 </div>
 </body>
