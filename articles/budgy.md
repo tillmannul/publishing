@@ -5,6 +5,7 @@
 # PROJECTS
 
 ## Coding projects
+   - publishing tool auf eigene domain bringen und passwort schützen 
    - Simple agents (Automatisierung mit n8n, etc)
       - Verknüpfung Claude, Email, Learning Dump. Use Case: Ich droppe eine Gesprächsnotiz und Claude schickt Transkript und Strukturierte Zusammenfassung per Email und fügt zu Google Doc hinzu (Eternal Meeting Notes)
       - Daily briefing on financial markets
