@@ -3,15 +3,15 @@
 <head>
    <meta charset="utf-8">
    <meta name="viewport" content="width=device-width, initial-scale=1">
-   <title>Projekt Diktiergerät</title>
+   <title>Projekt Dictaphone</title>
    <meta name="robots" content="noindex">
    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 <div class="layout">
-  <aside class="sidebar"><nav><ul><li><a href="shortcuts.html">Shortcuts</a></li><li><a href="budgy.html">Budgy</a></li><li><a href="diktiergeraet.html" class="active">Projekt Diktiergerät</a></li><li><a href="captablemanagement.html">[completed] Projekt CTM</a></li><li><a href="resources.html">Resources</a></li></ul></nav></aside>
-  <main class="content"><h1>Projekt: Diktiergeraet</h1>
-<p>🦜🦜  Diktiergeraet</p>
+  <aside class="sidebar"><nav><ul><li><a href="shortcuts.html">Shortcuts</a></li><li><a href="budgy.html">Budgy</a></li><li><a href="diktiergeraet.html" class="active">Projekt Dictaphone</a></li><li><a href="resources.html">Resources</a></li><li><a href="captablemanagement.html">[completed] Projekt CTM</a></li></ul></nav></aside>
+  <main class="content"><h1>Projekt Dictaphone (fka Diktiergeraet)</h1>
+<p>🦜🦜 Dictaphone</p>
 <p>Erstelle eigenes Diktiergeraet, mit dem ich Sprachnachrichten dokumentieren und zusammenfassen kann.</p>
 <p><em>Use Case:</em> Ich diktiere Gesprächsnotizen oder sonstige Gedanken in mein Handy. Es wird eine Zusammenfassung und ein Transkript erstellt.</p>
 <ul>
@@ -148,7 +148,321 @@ kleinem Modell dauert eine kurze Memo eher Minuten als Sekunden. Das ist hier
 bewusst akzeptiert. Reicht es später nicht, ist der Wechsel auf eine
 Cloud-Transkription der Fallback, dann allerdings mit einem Drittanbieter, der
 das Audio sieht.</p>
-<h2>Roadmap mit Breakpoints</h2>
+<h1>Dev Status per Jun 17</h1>
+<p>Selbst gehosteter Workflow: Sprachmemo per Mail einsprechen, auf eigenem Server
+transkribieren (Whisper), von Claude zusammenfassen lassen, Ergebnis als E-Mail
+erhalten und in einem fortlaufenden Google Doc protokollieren.</p>
+<p>Stand: Session 2a abgeschlossen. Server steht, ist abgesichert, Docker läuft.</p>
+<h3>Übersicht</h3>
+<table>
+<thead>
+<tr>
+  <th>Session</th>
+  <th>Inhalt</th>
+  <th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>1</td>
+  <td>Konten und Fundament</td>
+  <td>abgeschlossen</td>
+</tr>
+<tr>
+  <td>2a</td>
+  <td>Server absichern und Docker</td>
+  <td>abgeschlossen</td>
+</tr>
+<tr>
+  <td>2b</td>
+  <td>n8n über HTTPS</td>
+  <td>offen, als Nächstes</td>
+</tr>
+<tr>
+  <td>3</td>
+  <td>Trigger und Transkription</td>
+  <td>offen</td>
+</tr>
+<tr>
+  <td>4</td>
+  <td>Zusammenfassung und Ausgabe</td>
+  <td>offen</td>
+</tr>
+<tr>
+  <td>5</td>
+  <td>Feinschliff</td>
+  <td>offen</td>
+</tr>
+</tbody>
+</table>
+<h3>Eckdaten der Infrastruktur</h3>
+<table>
+<thead>
+<tr>
+  <th>Element</th>
+  <th>Wert</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Server</td>
+  <td>Hetzner Cloud CX22, Ubuntu 26.04 LTS</td>
+</tr>
+<tr>
+  <td>Öffentliche IP</td>
+  <td>178.104.138.236</td>
+</tr>
+<tr>
+  <td>Subdomain</td>
+  <td>n8n.tillmannlang.com (A-Record bei GoDaddy)</td>
+</tr>
+<tr>
+  <td>Zugang</td>
+  <td>SSH nur per Schlüssel, Benutzer <code>tillmann</code>, Root-Login gesperrt</td>
+</tr>
+<tr>
+  <td>Firewall</td>
+  <td>ufw aktiv, offen: SSH, 80, 443</td>
+</tr>
+<tr>
+  <td>Container</td>
+  <td>Docker + docker compose installiert</td>
+</tr>
+</tbody>
+</table>
+<p>Login von einem neuen Terminal: <code>ssh tillmann@178.104.138.236</code></p>
+<hr />
+<h3>Session 1 — Konten und Fundament (abgeschlossen)</h3>
+<p>Ziel-Status: Server existiert, ist per SSH erreichbar, Subdomain zeigt darauf.</p>
+<table>
+<thead>
+<tr>
+  <th>Schritt</th>
+  <th>Ziel-Status</th>
+  <th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Dediziertes Google-Konto</td>
+  <td>eigenes Konto für die Automatisierung vorhanden</td>
+  <td>erledigt</td>
+</tr>
+<tr>
+  <td>Anthropic-Console-Konto + Guthaben</td>
+  <td>API-Konto mit Guthaben bereit (Key folgt in Session 4)</td>
+  <td>erledigt</td>
+</tr>
+<tr>
+  <td>Hetzner-Cloud-Konto</td>
+  <td>Cloud-Bereich mit Projektzugang nutzbar</td>
+  <td>erledigt</td>
+</tr>
+<tr>
+  <td>SSH-Schlüssel auf dem Mac</td>
+  <td>Schlüsselpaar erzeugt, privater Schlüssel bleibt lokal</td>
+  <td>erledigt</td>
+</tr>
+<tr>
+  <td>VPS erstellen</td>
+  <td>CX22 mit Ubuntu läuft, IP bekannt</td>
+  <td>erledigt</td>
+</tr>
+<tr>
+  <td>DNS-A-Eintrag bei GoDaddy</td>
+  <td>n8n.tillmannlang.com löst auf die Server-IP auf</td>
+  <td>erledigt</td>
+</tr>
+<tr>
+  <td>Erster SSH-Login</td>
+  <td>Verbindung zum Server steht</td>
+  <td>erledigt</td>
+</tr>
+</tbody>
+</table>
+<h3>Session 2a — Server absichern und Docker (abgeschlossen)</h3>
+<p>Ziel-Status: Server gehärtet, nur Schlüssel-Login als Nicht-Root, Docker einsatzbereit.</p>
+<table>
+<thead>
+<tr>
+  <th>Schritt</th>
+  <th>Ziel-Status</th>
+  <th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>System aktualisieren</td>
+  <td>bekannte Sicherheitslücken geschlossen</td>
+  <td>erledigt</td>
+</tr>
+<tr>
+  <td>Nicht-Root-Benutzer + sudo</td>
+  <td>Alltagsbenutzer <code>tillmann</code> mit Adminrechten bei Bedarf</td>
+  <td>erledigt</td>
+</tr>
+<tr>
+  <td>SSH-Schlüssel für den Benutzer</td>
+  <td>Login als <code>tillmann</code> per Schlüssel möglich</td>
+  <td>erledigt</td>
+</tr>
+<tr>
+  <td>Gate: neuen Login testen</td>
+  <td>Ersatz-Zugang nachweislich funktionsfähig</td>
+  <td>erledigt</td>
+</tr>
+<tr>
+  <td>Root- und Passwort-Login abschalten</td>
+  <td>nur noch Schlüssel-Login als <code>tillmann</code>, Root gesperrt</td>
+  <td>erledigt</td>
+</tr>
+<tr>
+  <td>Firewall (ufw)</td>
+  <td>nur SSH, 80, 443 offen, Rest zu</td>
+  <td>erledigt</td>
+</tr>
+<tr>
+  <td>Docker + compose</td>
+  <td>Container lassen sich ohne sudo starten</td>
+  <td>erledigt</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3>Session 2b — n8n über HTTPS (offen, als Nächstes)</h3>
+<p>Ziel-Status: n8n-Login sicher erreichbar unter https://n8n.tillmannlang.com mit gültigem Zertifikat.</p>
+<table>
+<thead>
+<tr>
+  <th>Schritt</th>
+  <th>Ziel-Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Projektordner und docker-compose-Datei</td>
+  <td>Struktur für die Container steht</td>
+</tr>
+<tr>
+  <td>n8n-Container</td>
+  <td>n8n läuft als Container</td>
+</tr>
+<tr>
+  <td>Caddy als Reverse Proxy</td>
+  <td>Anfragen werden an n8n weitergereicht</td>
+</tr>
+<tr>
+  <td>TLS-Zertifikat</td>
+  <td>automatisches HTTPS via Let's Encrypt aktiv</td>
+</tr>
+<tr>
+  <td>Test im Browser</td>
+  <td>n8n-Login öffnet sich verschlüsselt über die Subdomain</td>
+</tr>
+</tbody>
+</table>
+<h3>Session 3 — Trigger und Transkription (offen)</h3>
+<p>Ziel-Status: Memo per Mail senden, Transkript erscheint als Text in n8n.</p>
+<table>
+<thead>
+<tr>
+  <th>Schritt</th>
+  <th>Ziel-Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>n8n-Grundlagen</td>
+  <td>erster Workflow verstanden und angelegt</td>
+</tr>
+<tr>
+  <td>IMAP-Trigger</td>
+  <td>n8n erkennt neue Memo-Mails im Postfach</td>
+</tr>
+<tr>
+  <td>Whisper-Container</td>
+  <td>Transkriptionsdienst läuft auf dem Server</td>
+</tr>
+<tr>
+  <td>Audio zu Text verdrahten</td>
+  <td>n8n schickt Audio an Whisper, erhält Text zurück</td>
+</tr>
+</tbody>
+</table>
+<h3>Session 4 — Zusammenfassung und Ausgabe (offen)</h3>
+<p>Ziel-Status: End-to-End. Memo rein, Mail mit Zusammenfassung und Transkript raus, Eintrag im Google Doc.</p>
+<table>
+<thead>
+<tr>
+  <th>Schritt</th>
+  <th>Ziel-Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Anthropic-API-Key</td>
+  <td>Key erzeugt und in n8n hinterlegt</td>
+</tr>
+<tr>
+  <td>Zusammenfassung via Claude</td>
+  <td>Transkript wird zu einer Zusammenfassung</td>
+</tr>
+<tr>
+  <td>Google-Cloud-OAuth</td>
+  <td>n8n darf mit minimalen Rechten auf Gmail und Docs zugreifen</td>
+</tr>
+<tr>
+  <td>Versand per Gmail</td>
+  <td>Zusammenfassung + Transkript + Zeitstempel als Mail an dich</td>
+</tr>
+<tr>
+  <td>Anhängen ans Google Doc</td>
+  <td>Eintrag mit Zeitstempel als Überschrift im selben Dokument</td>
+</tr>
+</tbody>
+</table>
+<h3>Session 5 — Feinschliff (offen)</h3>
+<p>Ziel-Status: Pipeline läuft zuverlässig im Alltag.</p>
+<table>
+<thead>
+<tr>
+  <th>Schritt</th>
+  <th>Ziel-Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Zeitstempel-Format</td>
+  <td>saubere Überschrift pro Eintrag</td>
+</tr>
+<tr>
+  <td>Immer dasselbe Doc</td>
+  <td>fortlaufendes Log statt vieler Einzeldokumente</td>
+</tr>
+<tr>
+  <td>Schutz gegen Doppelverarbeitung</td>
+  <td>jede Memo wird genau einmal verarbeitet</td>
+</tr>
+<tr>
+  <td>Gesamttest</td>
+  <td>mehrere Memos durchgespielt, Ergebnis stabil</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3>Wiedereinstieg vor der nächsten Session</h3>
+<ol>
+<li>Neues Terminal, einloggen: <code>ssh tillmann@178.104.138.236</code></li>
+<li>Prompt muss <code>tillmann@...</code> zeigen, nicht root.</li>
+<li>Weiter mit Session 2b: Projektordner und docker-compose-Datei.</li>
+</ol>
+<h3>Offene Hinweise</h3>
+<ul>
+<li>Server wird stündlich abgerechnet, solange er existiert. Ausschalten stoppt die Kosten nicht, nur Löschen.</li>
+<li>Anthropic-API-Key erst in Session 4 erzeugen, da er nur einmal angezeigt wird.</li>
+<li>Whisper läuft auf CPU mit kleinem Modell. Transkription dauert eher Minuten als Sekunden, bewusst akzeptiert.</li>
+</ul>
+<h2>(veraltet) Original Roadmap mit Breakpoints</h2>
 <p>Aufgeteilt in fünf Sessions. Jede endet an einem stabilen, testbaren Zustand, an
 dem problemlos pausiert werden kann. Gesamtaufwand realistisch 1,5 bis 2 Tage,
 über mehrere Termine verteilt.</p>
