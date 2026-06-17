@@ -1,6 +1,6 @@
-# Projekt: Diktiergeraet
+# Projekt Dictaphone (fka Diktiergeraet)
 
-🦜🦜  Diktiergeraet
+🦜🦜 Dictaphone 
 
 Erstelle eigenes Diktiergeraet, mit dem ich Sprachnachrichten dokumentieren und zusammenfassen kann.
 
@@ -60,7 +60,131 @@ bewusst akzeptiert. Reicht es später nicht, ist der Wechsel auf eine
 Cloud-Transkription der Fallback, dann allerdings mit einem Drittanbieter, der
 das Audio sieht.
 
-## Roadmap mit Breakpoints
+# Dev Status per Jun 17
+
+Selbst gehosteter Workflow: Sprachmemo per Mail einsprechen, auf eigenem Server
+transkribieren (Whisper), von Claude zusammenfassen lassen, Ergebnis als E-Mail
+erhalten und in einem fortlaufenden Google Doc protokollieren.
+
+Stand: Session 2a abgeschlossen. Server steht, ist abgesichert, Docker läuft.
+
+### Übersicht
+
+| Session | Inhalt | Status |
+|---|---|---|
+| 1 | Konten und Fundament | abgeschlossen |
+| 2a | Server absichern und Docker | abgeschlossen |
+| 2b | n8n über HTTPS | offen, als Nächstes |
+| 3 | Trigger und Transkription | offen |
+| 4 | Zusammenfassung und Ausgabe | offen |
+| 5 | Feinschliff | offen |
+
+### Eckdaten der Infrastruktur
+
+| Element | Wert |
+|---|---|
+| Server | Hetzner Cloud CX22, Ubuntu 26.04 LTS |
+| Öffentliche IP | 178.104.138.236 |
+| Subdomain | n8n.tillmannlang.com (A-Record bei GoDaddy) |
+| Zugang | SSH nur per Schlüssel, Benutzer `tillmann`, Root-Login gesperrt |
+| Firewall | ufw aktiv, offen: SSH, 80, 443 |
+| Container | Docker + docker compose installiert |
+
+Login von einem neuen Terminal: `ssh tillmann@178.104.138.236`
+
+---
+
+### Session 1 — Konten und Fundament (abgeschlossen)
+
+Ziel-Status: Server existiert, ist per SSH erreichbar, Subdomain zeigt darauf.
+
+| Schritt | Ziel-Status | Status |
+|---|---|---|
+| Dediziertes Google-Konto | eigenes Konto für die Automatisierung vorhanden | erledigt |
+| Anthropic-Console-Konto + Guthaben | API-Konto mit Guthaben bereit (Key folgt in Session 4) | erledigt |
+| Hetzner-Cloud-Konto | Cloud-Bereich mit Projektzugang nutzbar | erledigt |
+| SSH-Schlüssel auf dem Mac | Schlüsselpaar erzeugt, privater Schlüssel bleibt lokal | erledigt |
+| VPS erstellen | CX22 mit Ubuntu läuft, IP bekannt | erledigt |
+| DNS-A-Eintrag bei GoDaddy | n8n.tillmannlang.com löst auf die Server-IP auf | erledigt |
+| Erster SSH-Login | Verbindung zum Server steht | erledigt |
+
+### Session 2a — Server absichern und Docker (abgeschlossen)
+
+Ziel-Status: Server gehärtet, nur Schlüssel-Login als Nicht-Root, Docker einsatzbereit.
+
+| Schritt | Ziel-Status | Status |
+|---|---|---|
+| System aktualisieren | bekannte Sicherheitslücken geschlossen | erledigt |
+| Nicht-Root-Benutzer + sudo | Alltagsbenutzer `tillmann` mit Adminrechten bei Bedarf | erledigt |
+| SSH-Schlüssel für den Benutzer | Login als `tillmann` per Schlüssel möglich | erledigt |
+| Gate: neuen Login testen | Ersatz-Zugang nachweislich funktionsfähig | erledigt |
+| Root- und Passwort-Login abschalten | nur noch Schlüssel-Login als `tillmann`, Root gesperrt | erledigt |
+| Firewall (ufw) | nur SSH, 80, 443 offen, Rest zu | erledigt |
+| Docker + compose | Container lassen sich ohne sudo starten | erledigt |
+
+---
+
+### Session 2b — n8n über HTTPS (offen, als Nächstes)
+
+Ziel-Status: n8n-Login sicher erreichbar unter https://n8n.tillmannlang.com mit gültigem Zertifikat.
+
+| Schritt | Ziel-Status |
+|---|---|
+| Projektordner und docker-compose-Datei | Struktur für die Container steht |
+| n8n-Container | n8n läuft als Container |
+| Caddy als Reverse Proxy | Anfragen werden an n8n weitergereicht |
+| TLS-Zertifikat | automatisches HTTPS via Let's Encrypt aktiv |
+| Test im Browser | n8n-Login öffnet sich verschlüsselt über die Subdomain |
+
+### Session 3 — Trigger und Transkription (offen)
+
+Ziel-Status: Memo per Mail senden, Transkript erscheint als Text in n8n.
+
+| Schritt | Ziel-Status |
+|---|---|
+| n8n-Grundlagen | erster Workflow verstanden und angelegt |
+| IMAP-Trigger | n8n erkennt neue Memo-Mails im Postfach |
+| Whisper-Container | Transkriptionsdienst läuft auf dem Server |
+| Audio zu Text verdrahten | n8n schickt Audio an Whisper, erhält Text zurück |
+
+### Session 4 — Zusammenfassung und Ausgabe (offen)
+
+Ziel-Status: End-to-End. Memo rein, Mail mit Zusammenfassung und Transkript raus, Eintrag im Google Doc.
+
+| Schritt | Ziel-Status |
+|---|---|
+| Anthropic-API-Key | Key erzeugt und in n8n hinterlegt |
+| Zusammenfassung via Claude | Transkript wird zu einer Zusammenfassung |
+| Google-Cloud-OAuth | n8n darf mit minimalen Rechten auf Gmail und Docs zugreifen |
+| Versand per Gmail | Zusammenfassung + Transkript + Zeitstempel als Mail an dich |
+| Anhängen ans Google Doc | Eintrag mit Zeitstempel als Überschrift im selben Dokument |
+
+### Session 5 — Feinschliff (offen)
+
+Ziel-Status: Pipeline läuft zuverlässig im Alltag.
+
+| Schritt | Ziel-Status |
+|---|---|
+| Zeitstempel-Format | saubere Überschrift pro Eintrag |
+| Immer dasselbe Doc | fortlaufendes Log statt vieler Einzeldokumente |
+| Schutz gegen Doppelverarbeitung | jede Memo wird genau einmal verarbeitet |
+| Gesamttest | mehrere Memos durchgespielt, Ergebnis stabil |
+
+---
+
+### Wiedereinstieg vor der nächsten Session
+
+1. Neues Terminal, einloggen: `ssh tillmann@178.104.138.236`
+2. Prompt muss `tillmann@...` zeigen, nicht root.
+3. Weiter mit Session 2b: Projektordner und docker-compose-Datei.
+
+### Offene Hinweise
+
+- Server wird stündlich abgerechnet, solange er existiert. Ausschalten stoppt die Kosten nicht, nur Löschen.
+- Anthropic-API-Key erst in Session 4 erzeugen, da er nur einmal angezeigt wird.
+- Whisper läuft auf CPU mit kleinem Modell. Transkription dauert eher Minuten als Sekunden, bewusst akzeptiert.
+
+## (veraltet) Original Roadmap mit Breakpoints
 
 Aufgeteilt in fünf Sessions. Jede endet an einem stabilen, testbaren Zustand, an
 dem problemlos pausiert werden kann. Gesamtaufwand realistisch 1,5 bis 2 Tage,

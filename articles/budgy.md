@@ -8,12 +8,14 @@
    - Simple agents (Automatisierung mit n8n, etc)
       - Verknüpfung Claude, Email, Learning Dump. Use Case: Ich droppe eine Gesprächsnotiz und Claude schickt Transkript und Strukturierte Zusammenfassung per Email und fügt zu Google Doc hinzu (Eternal Meeting Notes)
       - Daily briefing on financial markets
+      - Make website with simple hero image onto tillmannlang.com
    - Efficiency apps
       - Cap Table Mgmt Ersatz bauen
       - Voice-to-text selbst bauen, See ai wizard Gruppe 14.3.
       - App die mir beim Finanzreview hilft
       - Connect readwise and claude
    - Ideen dump: 
+      - [Claude - Building AI agents for startups](https://claude.com/blog/building-ai-agents-for-startups)
       - Siehe Antworten auf diese Frage 21.5. in ai wizard group: \
    *Hey gentlemen, die Frage ist hier sicherlich schon mal aufgetaucht.  Ich hab die letzten Jahre intensive 150+ Ki Tools getestet und stelle mir bei dem speed die Frage, welche automation eigentlich wirklich ein echter 🚀 gamechanger ist.  Ja Ablagen für Accounting, Dashboards, contracts, Media Planung, legal, Auto-Social postings etc oder avatar Videos sind nice und gehen viel schneller aber wo gibts den echten leverage im privaten, wie im beruflichen für euch? Einfach mal als offene Frage… 🙋‍♂️*
       - Something for speaking anxietsy training
