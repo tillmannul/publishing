@@ -60,190 +60,147 @@ bewusst akzeptiert. Reicht es später nicht, ist der Wechsel auf eine
 Cloud-Transkription der Fallback, dann allerdings mit einem Drittanbieter, der
 das Audio sieht.
 
-# Dev Status per Jun 17
+# Dev Status per Jul 1
+
+# Sprachmemo-Pipeline: Roadmap und Fortschritt
 
 Selbst gehosteter Workflow: Sprachmemo per Mail einsprechen, auf eigenem Server
 transkribieren (Whisper), von Claude zusammenfassen lassen, Ergebnis als E-Mail
 erhalten und in einem fortlaufenden Google Doc protokollieren.
 
-Stand: Session 2a abgeschlossen. Server steht, ist abgesichert, Docker läuft.
+Stand: Session 2b abgeschlossen, Session 3 begonnen. n8n läuft über HTTPS, der
+E-Mail-Trigger holt Memos samt Audio-Anhang. Als Nächstes: Whisper.
 
-### Übersicht
+## Übersicht
 
 | Session | Inhalt | Status |
 |---|---|---|
 | 1 | Konten und Fundament | abgeschlossen |
 | 2a | Server absichern und Docker | abgeschlossen |
-| 2b | n8n über HTTPS | offen, als Nächstes |
-| 3 | Trigger und Transkription | offen |
+| 2b | n8n über HTTPS | abgeschlossen |
+| 3 | Trigger und Transkription | teilweise (Trigger fertig, Whisper offen) |
 | 4 | Zusammenfassung und Ausgabe | offen |
 | 5 | Feinschliff | offen |
 
-### Eckdaten der Infrastruktur
+## Eckdaten der Infrastruktur
 
 | Element | Wert |
 |---|---|
 | Server | Hetzner Cloud CX22, Ubuntu 26.04 LTS |
 | Öffentliche IP | 178.104.138.236 |
-| Subdomain | n8n.tillmannlang.com (A-Record bei GoDaddy) |
-| Zugang | SSH nur per Schlüssel, Benutzer `tillmann`, Root-Login gesperrt |
-| Firewall | ufw aktiv, offen: SSH, 80, 443 |
-| Container | Docker + docker compose installiert |
+| Subdomain | n8n.tillmannlang.com |
+| Zugang | SSH nur per Schlüssel, Benutzer `tillmann`, Root gesperrt |
+| Firewall | ufw aktiv (SSH, 80, 443) |
+| Container | Docker + compose; laufend: n8n, Caddy |
+| n8n-Verzeichnis | `~/n8n` (docker-compose.yml, Caddyfile) |
+| n8n-URL | https://n8n.tillmannlang.com (TLS via Caddy/Let's Encrypt) |
+| Empfangspostfach | dediziertes Gmail (auch Admin-Konto für n8n, Hetzner) |
+| Gmail-Label | `dictaphone-memos` (Filter: An mich + Anhang, Posteingang übersprungen) |
+| Mail-Zugang für n8n | IMAP + App-Passwort (imap.gmail.com:993, SSL) |
 
-Login von einem neuen Terminal: `ssh tillmann@178.104.138.236`
-
----
-
-### Session 1 — Konten und Fundament (abgeschlossen)
-
-Ziel-Status: Server existiert, ist per SSH erreichbar, Subdomain zeigt darauf.
-
-| Schritt | Ziel-Status | Status |
-|---|---|---|
-| Dediziertes Google-Konto | eigenes Konto für die Automatisierung vorhanden | erledigt |
-| Anthropic-Console-Konto + Guthaben | API-Konto mit Guthaben bereit (Key folgt in Session 4) | erledigt |
-| Hetzner-Cloud-Konto | Cloud-Bereich mit Projektzugang nutzbar | erledigt |
-| SSH-Schlüssel auf dem Mac | Schlüsselpaar erzeugt, privater Schlüssel bleibt lokal | erledigt |
-| VPS erstellen | CX22 mit Ubuntu läuft, IP bekannt | erledigt |
-| DNS-A-Eintrag bei GoDaddy | n8n.tillmannlang.com löst auf die Server-IP auf | erledigt |
-| Erster SSH-Login | Verbindung zum Server steht | erledigt |
-
-### Session 2a — Server absichern und Docker (abgeschlossen)
-
-Ziel-Status: Server gehärtet, nur Schlüssel-Login als Nicht-Root, Docker einsatzbereit.
-
-| Schritt | Ziel-Status | Status |
-|---|---|---|
-| System aktualisieren | bekannte Sicherheitslücken geschlossen | erledigt |
-| Nicht-Root-Benutzer + sudo | Alltagsbenutzer `tillmann` mit Adminrechten bei Bedarf | erledigt |
-| SSH-Schlüssel für den Benutzer | Login als `tillmann` per Schlüssel möglich | erledigt |
-| Gate: neuen Login testen | Ersatz-Zugang nachweislich funktionsfähig | erledigt |
-| Root- und Passwort-Login abschalten | nur noch Schlüssel-Login als `tillmann`, Root gesperrt | erledigt |
-| Firewall (ufw) | nur SSH, 80, 443 offen, Rest zu | erledigt |
-| Docker + compose | Container lassen sich ohne sudo starten | erledigt |
+Login: `ssh tillmann@178.104.138.236`
 
 ---
 
-### Session 2b — n8n über HTTPS (offen, als Nächstes)
+## Session 1 — Konten und Fundament (abgeschlossen)
 
-Ziel-Status: n8n-Login sicher erreichbar unter https://n8n.tillmannlang.com mit gültigem Zertifikat.
+Ziel-Status: Server existiert, per SSH erreichbar, Subdomain zeigt darauf.
 
-| Schritt | Ziel-Status |
-|---|---|
-| Projektordner und docker-compose-Datei | Struktur für die Container steht |
-| n8n-Container | n8n läuft als Container |
-| Caddy als Reverse Proxy | Anfragen werden an n8n weitergereicht |
-| TLS-Zertifikat | automatisches HTTPS via Let's Encrypt aktiv |
-| Test im Browser | n8n-Login öffnet sich verschlüsselt über die Subdomain |
+| Schritt | Ziel-Status | Status |
+|---|---|---|
+| Dediziertes Google-Konto | eigenes Konto für die Automatisierung | erledigt |
+| Anthropic-Console-Konto + Guthaben | API-Konto bereit (Key folgt Session 4) | erledigt |
+| Hetzner-Cloud-Konto | Cloud-Bereich nutzbar | erledigt |
+| SSH-Schlüssel auf dem Mac | Schlüsselpaar erzeugt | erledigt |
+| VPS erstellen | CX22/Ubuntu läuft, IP bekannt | erledigt |
+| DNS-A-Eintrag bei GoDaddy | Subdomain löst auf die IP auf | erledigt |
+| Erster SSH-Login | Verbindung steht | erledigt |
 
-### Session 3 — Trigger und Transkription (offen)
+## Session 2a — Server absichern und Docker (abgeschlossen)
+
+Ziel-Status: Server gehärtet, nur Schlüssel-Login als Nicht-Root, Docker bereit.
+
+| Schritt | Ziel-Status | Status |
+|---|---|---|
+| System aktualisieren | Sicherheitslücken geschlossen | erledigt |
+| Nicht-Root-Benutzer + sudo | Alltagsbenutzer `tillmann` | erledigt |
+| SSH-Schlüssel für den Benutzer | Schlüssel-Login als `tillmann` | erledigt |
+| Gate: neuen Login testen | Ersatz-Zugang nachgewiesen | erledigt |
+| Root-/Passwort-Login abschalten | nur Schlüssel-Login, Root gesperrt | erledigt |
+| Firewall (ufw) | nur SSH, 80, 443 offen | erledigt |
+| Docker + compose | Container ohne sudo startbar | erledigt |
+
+## Session 2b — n8n über HTTPS (abgeschlossen)
+
+Ziel-Status: n8n-Login sicher erreichbar mit gültigem Zertifikat.
+
+| Schritt | Ziel-Status | Status |
+|---|---|---|
+| Projektordner + docker-compose.yml | n8n + Caddy definiert | erledigt |
+| Caddyfile | Weiterleitung Domain zu n8n:5678 | erledigt |
+| Container starten | n8n und Caddy laufen | erledigt |
+| TLS-Zertifikat | HTTPS via Let's Encrypt aktiv (per curl bestätigt) | erledigt |
+| n8n Owner-Konto | Login angelegt, Canvas erreichbar | erledigt |
+
+---
+
+## Session 3 — Trigger und Transkription (teilweise)
 
 Ziel-Status: Memo per Mail senden, Transkript erscheint als Text in n8n.
 
-| Schritt | Ziel-Status |
-|---|---|
-| n8n-Grundlagen | erster Workflow verstanden und angelegt |
-| IMAP-Trigger | n8n erkennt neue Memo-Mails im Postfach |
-| Whisper-Container | Transkriptionsdienst läuft auf dem Server |
-| Audio zu Text verdrahten | n8n schickt Audio an Whisper, erhält Text zurück |
+| Schritt | Ziel-Status | Status |
+|---|---|---|
+| Gmail-Label + Filter | Memos landen automatisch im Label `dictaphone-memos` | erledigt |
+| App-Passwort | IMAP-Zugang für n8n eingerichtet | erledigt |
+| IMAP-Trigger in n8n | Trigger liest das Label, lädt den `.m4a`-Anhang | erledigt |
+| Trigger getestet | Test-Memo samt Audio-Anhang erscheint in n8n | erledigt |
+| Whisper-Container | Transkriptionsdienst läuft auf dem Server | offen, als Nächstes |
+| Audio zu Text verdrahten | n8n schickt Audio an Whisper, erhält Transkript | offen |
 
-### Session 4 — Zusammenfassung und Ausgabe (offen)
+## Session 4 — Zusammenfassung und Ausgabe (offen)
 
-Ziel-Status: End-to-End. Memo rein, Mail mit Zusammenfassung und Transkript raus, Eintrag im Google Doc.
+Ziel-Status: End-to-End. Memo rein, Mail mit Zusammenfassung + Transkript raus, Eintrag im Google Doc.
 
 | Schritt | Ziel-Status |
 |---|---|
 | Anthropic-API-Key | Key erzeugt und in n8n hinterlegt |
 | Zusammenfassung via Claude | Transkript wird zu einer Zusammenfassung |
 | Google-Cloud-OAuth | n8n darf mit minimalen Rechten auf Gmail und Docs zugreifen |
-| Versand per Gmail | Zusammenfassung + Transkript + Zeitstempel als Mail an dich |
+| Versand per Gmail | Zusammenfassung + Transkript + Zeitstempel als Mail |
 | Anhängen ans Google Doc | Eintrag mit Zeitstempel als Überschrift im selben Dokument |
 
-### Session 5 — Feinschliff (offen)
+## Session 5 — Feinschliff (offen)
 
 Ziel-Status: Pipeline läuft zuverlässig im Alltag.
 
 | Schritt | Ziel-Status |
 |---|---|
+| iOS-Kurzbefehl (Shortcut) | ein Tipp: aufnehmen und an die feste Adresse senden |
 | Zeitstempel-Format | saubere Überschrift pro Eintrag |
 | Immer dasselbe Doc | fortlaufendes Log statt vieler Einzeldokumente |
-| Schutz gegen Doppelverarbeitung | jede Memo wird genau einmal verarbeitet |
-| Gesamttest | mehrere Memos durchgespielt, Ergebnis stabil |
+| Sonderfälle abfangen | z.B. Mail ohne `.m4a`-Anhang wird sauber ignoriert |
+| Schutz gegen Doppelverarbeitung | jede Memo genau einmal verarbeitet |
+| Gesamttest | mehrere Memos durchgespielt, stabil |
 
 ---
 
-### Wiedereinstieg vor der nächsten Session
+## iPhone-Ablauf (geplant, Detail in Session 5)
 
-1. Neues Terminal, einloggen: `ssh tillmann@178.104.138.236`
-2. Prompt muss `tillmann@...` zeigen, nicht root.
-3. Weiter mit Session 2b: Projektordner und docker-compose-Datei.
+1. Apple Sprachmemos aufnehmen.
+2. Teilen zu Mail zu an die dedizierte Adresse (`.m4a`-Anhang).
+3. Gmail-Filter sortiert ins Label `dictaphone-memos`.
+4. Später ersetzt ein iOS-Shortcut die Schritte 1 und 2 durch einen Tipp.
 
-### Offene Hinweise
+## Wiedereinstieg nächste Session
 
-- Server wird stündlich abgerechnet, solange er existiert. Ausschalten stoppt die Kosten nicht, nur Löschen.
+1. Terminal: `ssh tillmann@178.104.138.236` (Prompt muss `tillmann@...` zeigen).
+2. Prüfen, dass die Container laufen: `docker ps` (n8n, caddy sollten „Up" sein).
+3. n8n im Browser öffnen: https://n8n.tillmannlang.com
+4. Weiter mit Session 3, nächster Schritt: Whisper-Container aufsetzen und Audio zu Text verdrahten.
+
+## Offene Hinweise
+
+- Server wird stündlich abgerechnet, solange er existiert. Nur Löschen stoppt die Kosten.
 - Anthropic-API-Key erst in Session 4 erzeugen, da er nur einmal angezeigt wird.
 - Whisper läuft auf CPU mit kleinem Modell. Transkription dauert eher Minuten als Sekunden, bewusst akzeptiert.
-
-## (veraltet) Original Roadmap mit Breakpoints
-
-Aufgeteilt in fünf Sessions. Jede endet an einem stabilen, testbaren Zustand, an
-dem problemlos pausiert werden kann. Gesamtaufwand realistisch 1,5 bis 2 Tage,
-über mehrere Termine verteilt.
-
-### Session 1 — Konten und Fundament
-
-| Punkt | Inhalt |
-|---|---|
-| Aufgaben | Google-Konto anlegen, Anthropic-API-Konto + kleines Guthaben, VPS bei Hetzner mieten, DNS-A-Eintrag bei GoDaddy auf die Server-IP |
-| Lernfokus | Bestellvorgänge, DNS-Grundlagen |
-| Breakpoint | Server per SSH erreichbar, `n8n.tillmannlang.com` löst auf die Server-IP auf |
-| Zeit | rund 1 bis 2 Stunden |
-
-### Session 2a — Server absichern und Docker
-
-| Punkt | Inhalt |
-|---|---|
-| Aufgaben | SSH-Zugang, Grundabsicherung (Firewall, kein Root-Login, Updates), Docker und docker-compose installieren |
-| Lernfokus | Linux-Server, Grundabsicherung, Docker |
-| Breakpoint | Server abgesichert, Docker läuft, Testcontainer startet |
-| Zeit | rund 2 bis 3 Stunden |
-
-### Session 2b — n8n über HTTPS
-
-| Punkt | Inhalt |
-|---|---|
-| Aufgaben | Caddy als Reverse Proxy mit automatischem TLS, n8n im Docker dahinter |
-| Lernfokus | Reverse Proxy, TLS-Zertifikate, docker-compose |
-| Breakpoint | n8n-Login erreichbar unter `https://n8n.tillmannlang.com` mit gültigem Zertifikat |
-| Zeit | rund 2 bis 3 Stunden |
-
-### Session 3 — Trigger und Transkription
-
-| Punkt | Inhalt |
-|---|---|
-| Aufgaben | n8n-Grundlagen, IMAP-Trigger auf das Memo-Postfach, Whisper-Container aufsetzen, Audio per HTTP-Knoten transkribieren |
-| Lernfokus | n8n-Workflows, Container, Verdrahtung, Debugging |
-| Breakpoint | Memo per Mail senden, Transkript erscheint als Text in n8n |
-| Zeit | rund 3 bis 4 Stunden |
-
-### Session 4 — Zusammenfassung und Ausgabe
-
-| Punkt | Inhalt |
-|---|---|
-| Aufgaben | Claude-API-Knoten für die Zusammenfassung, Google-Cloud-OAuth einrichten, Versand per Gmail, Anhängen ans Google Doc |
-| Lernfokus | API-Aufrufe, OAuth, Scopes |
-| Breakpoint | End-to-End: Memo rein, Mail mit Zusammenfassung + Transkript raus, Eintrag im Google Doc |
-| Zeit | rund 3 bis 4 Stunden |
-
-### Session 5 — Feinschliff
-
-| Punkt | Inhalt |
-|---|---|
-| Aufgaben | Zeitstempel als Überschrift, stets dasselbe Google Doc, Robustheit gegen Doppelverarbeitung, Gesamttest |
-| Lernfokus | Ablauflogik, Idempotenz |
-| Breakpoint | Pipeline läuft zuverlässig im Alltag |
-| Zeit | rund 1 bis 2 Stunden |
-
-Die fummeligsten Teile mit dem höchsten Lernwert und der größten
-Frustrationsgefahr sind Session 2b (TLS, Proxy) und Session 4 (OAuth, Scopes).
-Dort lohnt sich Geduld und schrittweises Testen am meisten.
+- `:latest` als Image-Tag ist fürs Lernen ok; für stabilen Betrieb später feste Versionen pinnen.
